@@ -28,7 +28,7 @@ Bulb[] myBulbs2 = new Bulb[BULB_NB];
 void draw() {
   // draw bulbs
    // draw first balls
-      for (int i = 0; i < BULB_NB; i++)
+          for (int i = 0; i < BULB_NB; i++)
     {
       int dc = int(map(rms.analyze(), 0, 0.5, 1, 255));
       myBulbs[i] = new Bulb(color(dc,255-dc,255), 80, i*20+20, 15);
@@ -55,10 +55,17 @@ class Bulb{
   }
   void display() {
     for (int i = 0; i < BULB_NB; i++) {
-      print(upDownCounter(10, 5), "\n");
     fill(c, upDownCounter(10, 5));
     ellipse(xpos, ypos, bsize, bsize);
     }
+  }
+}
+
+void keyPressed() {
+  if (key == '1') {
+   print("1");
+  } else if (key == '2') {
+    print("2");
   }
 }
 
