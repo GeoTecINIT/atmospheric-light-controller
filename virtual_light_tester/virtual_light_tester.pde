@@ -21,52 +21,69 @@ void setup() {
     
 }
 
-int BULB_NB = 20; 
+int BULB_NB = 40; 
 Bulb[] myBulbs = new Bulb[BULB_NB];
 
 void draw() {
-  // draw bulbs
-   // draw first balls
+
           for (int i = 0; i < BULB_NB; i++)
     {
-      int dc = int(map(rms.analyze(), 0, 0.5, 1, 255));
-      myBulbs[i] = new Bulb(color(dc,255-dc,255), 80, i*20+20, 15);
+      int dc = int(map(rms.analyze(), 0, 0.5, 1, 255)); // Modifies the color with sound amplitude
+      // drawing the bubls
+      float tempYpos = i*20+20;
+      float tempXpos = 80;
+      if(i>19){ //change position values to draw two lines
+        tempYpos = (i-20)*20+20;
+        tempXpos = 120;
+      }
+      myBulbs[i] = new Bulb(i+1, dc,255-dc,255, upDownCounter(10, 5), tempXpos, tempYpos, 15);
       myBulbs[i].display();
     } 
-   //  print(int(map(rms.analyze(), 0, 0.5, 1, 255)), "\n");
 }
 // Bulbs: [int ID, int R, int G, int B, float A, float xpos, float ypos, float bsize]
 
 // definir bulb
 class Bulb{
   color c;
+  float a;
   float xpos;
   float ypos;
   float bsize;
+  int objID;
   
   // The Constructor is defined with arguments.
-  Bulb(color tempC, float tempXpos, float tempYpos, float tempBsize){
-    c = tempC;
+  Bulb(int objID, int tempR, int tempG, int tempB, float tempA, float tempXpos, float tempYpos, float tempBsize){
+    c = color(tempR, tempG, tempB);
+    a = tempA;
     xpos = tempXpos;
     ypos = tempYpos;
     bsize = tempBsize;
+    objID = objID;
   }
   void display() {
+    //adds glow effect [TEST - NOT WORKING PROPERLY]
     for (int i = 0; i < BULB_NB; i++) {
-    fill(c, upDownCounter(10, 5));
+    fill(c, a);
     ellipse(xpos, ypos, bsize, bsize);
     }
   }
 }
 
+// for changing modes manually
 void keyPressed() {
   if (key == '1') {
    print("1");
   } else if (key == '2') {
     print("2");
+  } else if (key == '3') {
+    print("3");
+  }else if (key == '4') {
+    print("4");
+  }else if (key == '5') {
+    print("5");
   }
 }
-
+// counts fordward and backwards (for the glow effect)
 float upDownCounter(int maxValue, int factor) {
   float doubleMaxValue = 2*maxValue;
   float fcd = (frameCount/factor)%doubleMaxValue;
