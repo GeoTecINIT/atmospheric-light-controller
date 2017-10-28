@@ -23,7 +23,6 @@ void setup() {
 
 int BULB_NB = 20; 
 Bulb[] myBulbs = new Bulb[BULB_NB];
-Bulb[] myBulbs2 = new Bulb[BULB_NB];
 
 void draw() {
   // draw bulbs
@@ -33,11 +32,10 @@ void draw() {
       int dc = int(map(rms.analyze(), 0, 0.5, 1, 255));
       myBulbs[i] = new Bulb(color(dc,255-dc,255), 80, i*20+20, 15);
       myBulbs[i].display();
-      myBulbs2[i] = new Bulb(color(255,dc,255-dc), 120, i*20+20, 15);
-      myBulbs2[i].display();
     } 
    //  print(int(map(rms.analyze(), 0, 0.5, 1, 255)), "\n");
 }
+// Bulbs: [int ID, int R, int G, int B, float A, float xpos, float ypos, float bsize]
 
 // definir bulb
 class Bulb{
