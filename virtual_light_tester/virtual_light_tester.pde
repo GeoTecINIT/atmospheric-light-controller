@@ -5,7 +5,7 @@ import processing.sound.*;
 AudioIn in;
 Amplitude rms;
 
-void setup() {
+void setup(){
   size(200, 420); 
   background(0);
   noStroke();
@@ -18,15 +18,13 @@ void setup() {
     rms = new Amplitude(this);
     // Patch the input to an volume analyzer
     rms.input(in);
-    
 }
 
-int BULB_NB = 40; 
-Bulb[] myBulbs = new Bulb[BULB_NB];
+int BULB_NB = 40; // Quantity of bulbs
+ArrayList<Bulb> bulbs = new ArrayList<Bulb>(); 
 
 void draw() {
-
-          for (int i = 0; i < BULB_NB; i++)
+     for (int i = 0; i < BULB_NB; i++)
     {
       int dc = int(map(rms.analyze(), 0, 0.5, 1, 255)); // Modifies the color with sound amplitude
       // drawing the bubls
@@ -36,9 +34,12 @@ void draw() {
         tempYpos = (i-20)*20+20;
         tempXpos = 120;
       }
-      myBulbs[i] = new Bulb(i+1, dc,255-dc,255, upDownCounter(10, 5), tempXpos, tempYpos, 15);
-      myBulbs[i].display();
+      bulbs.add(new Bulb(i+1, dc,255-dc,255, upDownCounter(10, 5), tempXpos, tempYpos, 15));
     } 
+  for (int i = 0; i < bulbs.size(); i++) {
+  Bulb part = bulbs.get(i);
+  part.display();
+}
 }
 // Bulbs: [int ID, int R, int G, int B, float A, float xpos, float ypos, float bsize]
 
