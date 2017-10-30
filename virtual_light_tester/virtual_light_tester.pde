@@ -2,13 +2,32 @@
 // Requires sound library
 
 import processing.sound.*;
+import oscP5.*;
+import netP5.*;
+
 AudioIn in;
 Amplitude rms;
+
+OscP5 oscP5;
+NetAddress nodejsServer;
+String receivedString="";
 
 void setup(){
   size(200, 420); 
   background(0);
   noStroke();
+  /* start oscP5, listening for incoming messages at port 12000 */
+  oscP5 = new OscP5(this,3333);
+  
+  /* myRemoteLocation is a NetAddress. a NetAddress takes 2 parameters,
+   * an ip address and a port number. myRemoteLocation is used as parameter in
+   * oscP5.send() when sending osc packets to another computer, device, 
+   * application. usage see below. for testing purposes the listening port
+   * and the port of the remote location address are the same, hence you will
+   * send messages back to this sketch.
+   */
+   nodejsServer = new NetAddress("127.0.0.1",3334);
+   
   //frameRate(2);
   // Create the Input stream
   in = new AudioIn(this, 0);
@@ -34,7 +53,8 @@ void draw() {
         tempYpos = (i-20)*20+20;
         tempXpos = 120;
       }
-      bulbs.add(new Bulb(i+1, dc,255-dc,255, upDownCounter(10, 5), tempXpos, tempYpos, 15));
+      // upDownCounter(10, 5) color changer for alpha (making the system slow)
+      bulbs.add(new Bulb(i+1, dc,255-dc,255, 1, tempXpos, tempYpos, 15));
     } 
   for (int i = 0; i < bulbs.size(); i++) {
   Bulb part = bulbs.get(i);
@@ -64,7 +84,7 @@ class Bulb{
   void display() {
     //adds glow effect [TEST - NOT WORKING PROPERLY]
     for (int i = 0; i < BULB_NB; i++) {
-    fill(c, a);
+    fill(c);
     ellipse(xpos, ypos, bsize, bsize);
     }
   }
@@ -89,4 +109,18 @@ float upDownCounter(int maxValue, int factor) {
   float doubleMaxValue = 2*maxValue;
   float fcd = (frameCount/factor)%doubleMaxValue;
   return (fcd<maxValue)?fcd:doubleMaxValue-fcd; // this line is also important!
+}
+ void receive(String s){
+   receivedString=s;
+ }
+/* incoming osc message are forwarded to the oscEvent method. */
+void oscEvent(OscMessage theOscMessage) {
+  if(theOscMessage.checkAddrPattern("/clientMsg")==true) {
+    /* check if the typetag is the right one. */
+    if(theOscMessage.checkTypetag("s")) {
+      /* parse theOscMessage and extract the values from the osc message arguments. */
+      receivedString=theOscMessage.get(0).stringValue();
+      print(receivedString);
+    }  
+  }
 }
