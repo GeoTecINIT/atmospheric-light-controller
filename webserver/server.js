@@ -14,6 +14,20 @@ var oscServer = new osc.Server(3334, '127.0.0.1');
 var oscClient = new osc.Client('127.0.0.1', 3333);
 
 
+//connect to mongodb for log users
+var MongoClient = require('mongodb').MongoClient
+  , assert = require('assert');
+
+// Connection URL
+var url = 'mongodb://localhost:27017/atmospheric-light-controller';
+
+MongoClient.connect(url, function(err, db) {
+  assert.equal(null, err);
+  console.log("Connected successfully to server");
+
+  db.close();
+});
+
 //app.use(express.static(__dirname + '/'));
 app.get('/',function(req, res) {
  	   res.sendFile("web-export/index.html", { root: __dirname });
