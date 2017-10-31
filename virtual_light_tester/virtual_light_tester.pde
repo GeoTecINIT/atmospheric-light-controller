@@ -12,6 +12,8 @@ OscP5 oscP5;
 NetAddress nodejsServer;
 String receivedString="";
 
+String chosenOption=""; 
+
 void setup(){
   size(200, 420); 
   background(0);
@@ -43,25 +45,35 @@ int BULB_NB = 40; // Quantity of bulbs
 ArrayList<Bulb> bulbs = new ArrayList<Bulb>(); 
 
 void draw() {
-     for (int i = 0; i < BULB_NB; i++)
-    {
-      int dc = int(map(rms.analyze(), 0, 0.5, 1, 255)); // Modifies the color with sound amplitude
-      // drawing the bubls
-      float tempYpos = i*20+20;
-      float tempXpos = 80;
-      if(i>19){ //change position values to draw two lines
-        tempYpos = (i-20)*20+20;
-        tempXpos = 120;
-      }
-      // upDownCounter(10, 5) color changer for alpha (making the system slow)
-      bulbs.add(new Bulb(i+1, dc,255-dc,255, 1, tempXpos, tempYpos, 15));
-    } 
+    int cm = millis() % 255;
+    int cmd = (millis() + 2500) % 255;
+      //iterate through the bulbs
+     for (int i = 0; i < BULB_NB; i++){
+       
+       //defining the position of bulbs in graph
+        float tempYpos = i*20+20;
+        float tempXpos = 80;
+        if(i>19){ //change position values to draw two lines
+          tempYpos = (i-20)*20+20;
+          tempXpos = 120;
+        }
+        //changing the program by pressing keys or web interface
+         if(chosenOption=="option1"){
+           if(i% 2 == 0){ bulbs.add(new Bulb(cmd,cmd,cmd, 1, tempXpos, tempYpos, 15)); }
+           else{ bulbs.add(new Bulb(cm,cm,cm, 1, tempXpos, tempYpos, 15)); }
+         }else{ // default programming if there is not chosen option
+            int dc = int(map(rms.analyze(), 0, 0.5, 1, 255)); // Modifies the color with sound amplitude
+            // upDownCounter(10, 5) color changer for alpha (making the system slow)
+            bulbs.add(new Bulb(dc,255-dc,255, 1, tempXpos, tempYpos, 15));
+      } 
+    }
+  //draw the bulbs
   for (int i = 0; i < bulbs.size(); i++) {
-  Bulb part = bulbs.get(i);
-  part.display();
+    Bulb part = bulbs.get(i);
+    part.display();
+ }
 }
-}
-// Bulbs: [int ID, int R, int G, int B, float A, float xpos, float ypos, float bsize]
+// Bulbs: [int R, int G, int B, float A, float xpos, float ypos, float bsize]
 
 // definir bulb
 class Bulb{
@@ -69,39 +81,44 @@ class Bulb{
   float a;
   float xpos;
   float ypos;
-  float bsize;
-  int objID;
-  
+  float bsize;  
   // The Constructor is defined with arguments.
-  Bulb(int objID, int tempR, int tempG, int tempB, float tempA, float tempXpos, float tempYpos, float tempBsize){
+  Bulb(int tempR, int tempG, int tempB, float tempA, float tempXpos, float tempYpos, float tempBsize){
     c = color(tempR, tempG, tempB);
     a = tempA;
     xpos = tempXpos;
     ypos = tempYpos;
     bsize = tempBsize;
-    objID = objID;
   }
   void display() {
     //adds glow effect [TEST - NOT WORKING PROPERLY]
-    for (int i = 0; i < BULB_NB; i++) {
+   // for (int i = 0; i < BULB_NB; i++) {
     fill(c);
     ellipse(xpos, ypos, bsize, bsize);
-    }
+   // }
   }
 }
 
 // for changing modes manually
 void keyPressed() {
   if (key == '1') {
-   print("1");
+   print("Key pressed: option1\n");
+   chosenOption = "option1";
   } else if (key == '2') {
-    print("2");
+    print("Key pressed: option2\n");
+    chosenOption = "option2";
   } else if (key == '3') {
-    print("3");
+    print("Key pressed: option3\n");
+    chosenOption = "option3";
   }else if (key == '4') {
-    print("4");
+    print("Key pressed: option4\n");
+    chosenOption = "option4";
   }else if (key == '5') {
-    print("5");
+    print("Key pressed: option5\n");
+    chosenOption = "option5";
+  }else if (key == '0') {
+    print("option set to empty\n");
+    chosenOption = "";
   }
 }
 // counts fordward and backwards (for the glow effect)
@@ -120,7 +137,8 @@ void oscEvent(OscMessage theOscMessage) {
     if(theOscMessage.checkTypetag("s")) {
       /* parse theOscMessage and extract the values from the osc message arguments. */
       receivedString=theOscMessage.get(0).stringValue();
-      print(receivedString);
+      print("Key received by webserver",receivedString);
+      chosenOption = receivedString;
     }  
   }
 }
