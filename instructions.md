@@ -6,7 +6,8 @@ Processing controller:
 /virtual_light/launcher.pde (for now, the tester)
 
 Nodejs server: 
-/webserver/server.js (OSC-NODE connector)
+	mongodb
+	node /webserver/server.js (OSC-NODE connector)
 
 MAX audio controller:
 - Pendent
