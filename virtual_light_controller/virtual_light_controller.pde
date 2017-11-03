@@ -12,6 +12,7 @@ OscP5 oscP5;
 NetAddress nodejsServer;
 char receivedString;
 char chosenOption; 
+char chosenSpeed; 
 int a = 0;
 void setup(){
   size(200, 420); 
@@ -42,8 +43,7 @@ void setup(){
 }
 
 int BULB_NB = 40; // Quantity of bulbs
-ArrayList<Bulb> bulbs = new ArrayList<Bulb>(); 
-
+Bulb bulb; 
 void draw() { 
     a++; if(a>255){a=0;}
     
@@ -58,50 +58,42 @@ void draw() {
           tempYpos = (i-20)*20+20;
           tempXpos = 120;
         }
-        
-        //changing the program by pressing keys or web interface
-        switch(chosenOption){
+         switch(chosenOption){
         case 'A':
           if(i% 2 == 0){
             cm = (millis() + 2500) % 255; 
-            bulbs.add(new Bulb(cm,cm,cm, 1, tempXpos, tempYpos, 15)); }
-           else{ bulbs.add(new Bulb(cm,cm,cm, 1, tempXpos, tempYpos, 15)); }
+            bulb = new Bulb(cm,cm,cm, 1, tempXpos, tempYpos, 15); }
+           else{bulb = new Bulb(cm,cm,cm, 1, tempXpos, tempYpos, 15); }
           break;
          case 'B':
            cm = (a+i*39)%255;
            //println(a,i,cm);
-           bulbs.add(new Bulb(cm,cm,cm, 1, tempXpos, tempYpos, 15));
+           bulb = new Bulb(cm,cm,cm, 1, tempXpos, tempYpos, 15);
           break;
           case 'C':
            cm = (a*i)%255;
            println(a,i,cm, frameRate);
-           bulbs.add(new Bulb(cm,cm,cm, 1, tempXpos, tempYpos, 15));
+           bulb = new Bulb(cm,cm,cm, 1, tempXpos, tempYpos, 15);
           break;
           case 'D':
           println(frameRate);
           if(i >= BULB_NB/2){
             cm = (a*(i-BULB_NB/2))%255; 
-            bulbs.add(new Bulb(cm,cm,cm, 1, tempXpos, tempYpos, 15)); }
+            bulb = new Bulb(cm,cm,cm, 1, tempXpos, tempYpos, 15); }
            else{ 
             cm = (a*i)%255;
-           bulbs.add(new Bulb(cm,cm,cm, 1, tempXpos, tempYpos, 15)); }
+          bulb = new Bulb(cm,cm,cm, 1, tempXpos, tempYpos, 15); }
           break;
          default:
            int dc = int(map(rms.analyze(), 0, 0.5, 1, 255)); // Modifies the color with sound amplitude
-            bulbs.add(new Bulb(dc,255-dc,255, 1, tempXpos, tempYpos, 15));
+           bulb = new Bulb(dc,255-dc,255, 1, tempXpos, tempYpos, 15);
+           println(dc);
           break;
        }
-        
-      
+        bulb.display();
     }
-  //draw the bulbs
-  
-  for (int i = 0; i < bulbs.size(); i++) {
-    Bulb part = bulbs.get(i);
-    part.display();
- }
+
 }
-// Bulbs: [int R, int G, int B, float A, float xpos, float ypos, float bsize]
 
 // definir bulb
 class Bulb{
@@ -119,34 +111,50 @@ class Bulb{
     bsize = tempBsize;
   }
   void display() {
-    //adds glow effect [TEST - NOT WORKING PROPERLY]
-   // for (int i = 0; i < BULB_NB; i++) {
     fill(c);
     ellipse(xpos, ypos, bsize, bsize);
-   // }
   }
 }
 
 // for changing modes manually
 void keyPressed() {
-  if (key == '1') {
+  if (key == 'a' || key == 'A') {
    print("Key pressed: option A\n");
    chosenOption = 'A';
-  } else if (key == '2') {
+  } else if (key == 'b' || key == 'B') {
     print("Key pressed: option B\n");
     chosenOption = 'B';
-  } else if (key == '3') {
+  } else if (key == 'c' || key == 'C') {
     print("Key pressed: option C\n");
     chosenOption = 'C';
-  }else if (key == '4') {
+  }else if (key == 'd' || key == 'D') {
     print("Key pressed: option D\n");
     chosenOption = 'D';
-  }else if (key == '5') {
+  }else if (key == 'e' || key == 'E') {
     print("Key pressed: option E\n");
     chosenOption = 'E';
-  }else if (key == '0') {
+  }else if (key == 'n' || key == 'N') {
     print("option set to empty\n");
     chosenOption = '\n';
+  }
+  if (key == '1') {
+   print("Key pressed: Speed 1\n");
+   chosenSpeed = '1';
+  } else if (key == '2') {
+    print("Key pressed: Speed 2\n");
+    chosenSpeed = '2';
+  } else if (key == '3') {
+    print("Key pressed: Speed 3\n");
+    chosenSpeed = '3';
+  }else if (key == '4') {
+    print("Key pressed: Speed 4\n");
+    chosenSpeed = '4';
+  }else if (key == '5') {
+    print("Key pressed: Speed 5\n");
+    chosenSpeed = '5';
+  }else if (key == '0') {
+    print("option set to stop\n");
+    chosenSpeed = '0';
   }
 }
 
