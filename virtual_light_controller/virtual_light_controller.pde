@@ -18,7 +18,7 @@ void setup(){
   size(200, 420); 
   background(0);
   noStroke();
-  //frameRate(10);
+   frameRate(30);
   /* start oscP5, listening for incoming messages at port 12000 */
   oscP5 = new OscP5(this,3333);
   
@@ -140,18 +140,23 @@ void keyPressed() {
   if (key == '1') {
    print("Key pressed: Speed 1\n");
    chosenSpeed = '1';
+   frameRate(5);
   } else if (key == '2') {
     print("Key pressed: Speed 2\n");
     chosenSpeed = '2';
+    frameRate(20);
   } else if (key == '3') {
     print("Key pressed: Speed 3\n");
     chosenSpeed = '3';
+    frameRate(30);
   }else if (key == '4') {
     print("Key pressed: Speed 4\n");
     chosenSpeed = '4';
+    frameRate(50);
   }else if (key == '5') {
     print("Key pressed: Speed 5\n");
     chosenSpeed = '5';
+    frameRate(80);
   }else if (key == '0') {
     print("option set to stop\n");
     chosenSpeed = '0';

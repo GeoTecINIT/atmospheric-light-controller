@@ -1,3 +1,4 @@
 webserver/node_modules/
 webserver/deprecated/
 virtual_light_tester/
+.DS_Store
