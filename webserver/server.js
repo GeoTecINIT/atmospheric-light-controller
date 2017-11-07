@@ -2,10 +2,16 @@ var express = require('express');
 var app = express();
 var clientSessions = require("client-sessions");
 var crypto = require('crypto');
-//var socket = require('socket.io');
+var server = require('http').Server(app);
+var io = require('socket.io')(server);
 var bodyParser = require('body-parser');
 app.use(bodyParser.json()); 
 app.use(bodyParser.urlencoded({ extended: true })); 
+
+
+var maxUsers = 1;
+var theUser;
+var theRoom = 'control room';
 
 //using node-osc library: 'npm install node-osc'
 //this will also install 'osc-min'
@@ -33,16 +39,33 @@ MongoClient.connect(MongoUrl, function(err, db) {
 
 
 //app.use(express.static(__dirname + '/'));
-app.get('/',function(req, res) {
- 	   res.sendFile("web-export/index.html", { root: __dirname });
+app.get('/',function(req, res) {	
+		
 	   //check if cookie session is already set
 	   if (req.session_state.username) { 
 		   console.log('User connected:'+req.session_state.username);
+		   theUser = req.session_state.username;
 	     } else { //if not cookie found, assigns new token as username
 			 var token = crypto.randomBytes(24).toString('hex');
 		     req.session_state.username = token;
 		     console.log('User created:'+req.session_state.username);
+			theUser = req.session_state.username;
 	     }
+   	  	 res.sendFile("web-export/index.html", { root: __dirname });
+		 
+		 if(theUser){
+	  		// load form
+			 if(io.sockets.adapter.rooms[theRoom] > maxUsers){
+				 socket.join(theRoom, () => {
+				     let rooms = Objects.keys(socket.rooms);
+				     console.log(rooms); // [ <socket.id>, 'room 237' ]
+				     io.to(theRoom, 'a new user has joined the room'); // broadcast to everyone in the room
+					 console.log(theUser+' has entered '+theRoom);
+				   });
+			 }else{
+			 	
+			 }
+		 }
 	});
 app.post('/option',function(req, res) {
 	var option = req.body.option; //get option from form		
@@ -72,37 +95,18 @@ console.log('User deleted:'+req.session_state.username);
 });
 
 //nodejs server listens to msgs on port 8080
-var server = app.listen(8080);
-//io sockets would address to all the web-clients talking to this nodejs server
-//var io = socket.listen(server);
-
-
+var server = server.listen(8080);
 
 //some web-client connects
-//io.sockets.on('connection', function (socket) {
-//	console.log("connnect");
-	//msg sent whenever someone connects
-//	socket.emit("serverMsg",{txt:"Connected to server"});
+io.on('connection', function (socket) {
+	  socket.on('user connected', function (data) {
+	    console.log(data.txt+' ('+theUser+')');
+	  });
 	
 	//some web-client disconnects
-//	socket.on('disconnect', function (socket) {
-//		console.log("disconnect");
-//	});
+	socket.on('disconnect', function (data) {
+		console.log("user disconnect: " + data+' ('+theUser+')');
+	});
 	
-	//some web-client sents in a msg
-//	socket.on('clientMsg', function (data) {
-//		console.log(data.txt);
-		//pass the msg on to the oscClient
-
-//	});
-	
-	//received an osc msg
-//	oscServer.on("message", function (msg, rinfo) {
-//		console.log("Message:");
-//		console.log(msg);
-//		//pass the msg on to all of the web-clients
-		//msg[1] stands for the first argument received which in this case should be a string
-//		socket.emit("serverMsg",{txt: msg[1]});
-//	});
-//});
+});
 

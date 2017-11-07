@@ -3,8 +3,13 @@
 		<meta http-equiv="content-type" content="text/html; charset=utf-8" />
 		<title>Change whatever title here</title>
 		<link rel="icon"  type="image/x-icon" href="data:image/x-icon;base64,AAABAAEAEBAQAAEABAAoAQAAFgAAACgAAAAQAAAAIAAAAAEABAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAADAQAAVzABAEAjBQAaDwYAWjUGAGE6CQBrQQ0ATS8PAFhAJwBUQC8AbFI6AHVXPACBZk4A4NrWAPb19QAAAAAAAMmZmZmZmgAJIwAAAAAAcMIjPjA+PjAKpxIuMDMzMAm0Ii4zMzMACaIiLt3dMAAJtyIuIzPQAAm0Un5yM+IzKLRkfncy4iIotRF+dyLkIiq0QX53F+EiGrQUTkd34iIatEVu7u5iIVrBVVRBRFRVbAtGZGZla2uwAMu7u7u8vADAAwAAgAEAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAIABAADAAwAA" />
+		<script type="text/javascript" src="/socket.io/socket.io.js"></script>
 	    <script src="//ajax.googleapis.com/ajax/libs/jquery/2.1.1/jquery.min.js">  </script>
-	       <script>			   
+	       <script type="text/javascript">			   
+			 var socket = io.connect('http://' + location.hostname + ':8080'); 
+		     socket.emit('user connected', { txt: 'User connected at socket' });
+
+			  
 	         $(document).ready(function(){
 	           var option;
 	           $("#selector").change(function(){
