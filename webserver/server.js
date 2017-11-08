@@ -10,8 +10,13 @@ app.use(bodyParser.urlencoded({ extended: true }));
 
 
 var maxUsers = 1;
+var numUsers = 0;
 var theUser;
 var theRoom = 'control room';
+var roomEmpty = true;
+var roomUser = '';
+var maxTime = 60000; //set maximum time of practice 60k = 1m
+var countdown = maxTime; 
 
 //using node-osc library: 'npm install node-osc'
 //this will also install 'osc-min'
@@ -38,7 +43,7 @@ MongoClient.connect(MongoUrl, function(err, db) {
 
 
 
-//app.use(express.static(__dirname + '/'));
+app.use('/static', express.static(__dirname + '/web-export'));
 app.get('/',function(req, res) {	
 		
 	   //check if cookie session is already set
@@ -51,21 +56,12 @@ app.get('/',function(req, res) {
 		     console.log('User created:'+req.session_state.username);
 			theUser = req.session_state.username;
 	     }
-   	  	 res.sendFile("web-export/index.html", { root: __dirname });
-		 
-		 if(theUser){
 	  		// load form
-			 if(io.sockets.adapter.rooms[theRoom] > maxUsers){
-				 socket.join(theRoom, () => {
-				     let rooms = Objects.keys(socket.rooms);
-				     console.log(rooms); // [ <socket.id>, 'room 237' ]
-				     io.to(theRoom, 'a new user has joined the room'); // broadcast to everyone in the room
-					 console.log(theUser+' has entered '+theRoom);
-				   });
-			 }else{
-			 	
-			 }
-		 }
+   	  	 if(theUser){
+			 res.sendFile(__dirname +"/web-export/index.html");
+		 }else{
+			 res.send('Hubo un problema cargando el sitio. Lo sentimos!');
+   	  	 }	 
 	});
 app.post('/option',function(req, res) {
 	var option = req.body.option; //get option from form		
@@ -99,14 +95,77 @@ var server = server.listen(8080);
 
 //some web-client connects
 io.on('connection', function (socket) {
+	socket.emit('your user', {user: theUser});
+	timer(3000,function() {  socket.emit('check room', {status: roomEmpty, user: roomUser}); });
+	
 	  socket.on('user connected', function (data) {
-	    console.log(data.txt+' ('+theUser+')');
+		roomEmpty = false;
+		roomUser = theUser;
+		console.log('Your user: '+theUser+' - Empty room:'+roomEmpty+' - Current User: '+roomUser)
+		countdown = maxTime;
+		var mainCounter = timer(1, function() {  
+			if(countdown == 0){
+				countdown = maxTime;
+				roomEmpty = true;
+				roomUser = '';
+				//socket.disconnect(true);
+				//socket.broadcast.emit('check room', {status: roomEmpty, user: roomUser});
+				socket.emit('kick user');
+				mainCounter.stop();
+			}else{
+	  		  countdown--;
+			  console.log(countdown);
+	  		  socket.broadcast.emit('timer', { countdown: countdown });
+			  socket.emit('timer', { countdown: countdown });
+			}
+		});
 	  });
 	
 	//some web-client disconnects
 	socket.on('disconnect', function (data) {
-		console.log("user disconnect: " + data+' ('+theUser+')');
+		console.log("user disconnected: " + data+' ('+theUser+') at '+ countdown+' miliseconds');
+		roomEmpty = true;
+		roomUser = '';
+		//socket.emit('check room', {status: roomEmpty, user: roomUser});
 	});
+    socket.on('empty room', function (data) {
+  	  roomEmpty = true;
+    });
+  socket.on('check room', function (data) {
+	  socket.emit('check room', {status: roomEmpty, user: roomUser});
+    //console.log(data.txt+' ('+theUser+')');
+  });
 	
 });
 
+/**
+ * A high resolution timer.
+ */
+function timer(delay, callback)
+{
+    // self-reference
+    var self = this;
+
+    // attributes
+    var counter = 0;
+    var start = new Date().getTime();
+
+    /**
+     * Delayed running of the callback.
+     */
+    function delayed()
+    {
+        callback(delay);
+        counter ++;
+        var diff = (new Date().getTime() - start) - counter * delay;
+        setTimeout(delayed, delay - diff);
+    }
+
+    // start timer
+    delayed();
+    var timeout = setTimeout(delayed, delay);
+	
+	this.stop = function() {
+	        clearTimeout(timeout);
+	    }
+}
