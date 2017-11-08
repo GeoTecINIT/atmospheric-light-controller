@@ -103,7 +103,7 @@ io.on('connection', function (socket) {
 		roomUser = theUser;
 		console.log('Your user: '+theUser+' - Empty room:'+roomEmpty+' - Current User: '+roomUser)
 		countdown = maxTime;
-		var mainCounter = timer(1, function() {  
+		var mainCounter = new timer(1, function() {  
 			if(countdown == 0){
 				countdown = maxTime;
 				roomEmpty = true;
