@@ -19,12 +19,22 @@ $(function() {
 		theUser = data.user;
 	});
 		socket.on('check room', (data)=>{
-				roomEmpty = data.status;
-				currentUser = data.user;
-				verifyRoomState(roomEmpty, currentUser);
-			});
+			roomEmpty = data.status;
+			currentUser = data.user;
+			verifyRoomState(roomEmpty, currentUser);
+		});
 	
-	
+		socket.on('disconnect', function () {
+		    console.log('you have been disconnected');
+		  });
+
+		  socket.on('reconnect', function () {
+			  console.log('you have been reconnected');
+		  });
+
+		  socket.on('reconnect_error', function () {
+		    console.log('attempt to reconnect has failed');
+		  });
 	
 function verifyRoomState(roomEmpty, currentUser){
 	if(roomEmpty){
@@ -60,8 +70,8 @@ function enterRoom(){
 		});
 		// muestra el timer
 		socket.on('timer', (data)=>{
-			$('#timer').html(Math.floor((data.countdown/1000/60) << 0)+':'+Math.floor((data.countdown/1000) % 60));
-			//
+			$('#timer').html(Math.floor((data.countdown/60) << 0)+':'+data.countdown);
+			// 
 		});
 		socket.on('kick user', function(){
 			exitRoom();

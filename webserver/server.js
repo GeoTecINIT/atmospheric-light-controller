@@ -15,7 +15,7 @@ var theUser;
 var theRoom = 'control room';
 var roomEmpty = true;
 var roomUser = '';
-var maxTime = 60000; //set maximum time of practice 60k = 1m
+var maxTime = 20; //set maximum seconds of practice 60 = 1m
 var countdown = maxTime; 
 
 //using node-osc library: 'npm install node-osc'
@@ -76,7 +76,6 @@ app.post('/option',function(req, res) {
 			console.log(option+' saved in db.');
 		  db.close();
 		});
-        //res.send('processing the login form!');
 		// sending the variable to Processing
 		var msg =  new osc.Message('/clientMsg')
  		msg.append(req.body.option)
@@ -96,28 +95,25 @@ var server = server.listen(8080);
 //some web-client connects
 io.on('connection', function (socket) {
 	socket.emit('your user', {user: theUser});
-	timer(3000,function() {  socket.emit('check room', {status: roomEmpty, user: roomUser}); });
+	setInterval(function() {  socket.emit('check room', {status: roomEmpty, user: roomUser}); }, 3000);
 	
 	  socket.on('user connected', function (data) {
+		
 		roomEmpty = false;
 		roomUser = theUser;
 		console.log('Your user: '+theUser+' - Empty room:'+roomEmpty+' - Current User: '+roomUser)
 		countdown = maxTime;
-		var mainCounter = new timer(1, function() {  
-			if(countdown == 0){
-				countdown = maxTime;
-				roomEmpty = true;
-				roomUser = '';
-				//socket.disconnect(true);
-				//socket.broadcast.emit('check room', {status: roomEmpty, user: roomUser});
-				socket.emit('kick user');
-				mainCounter.stop();
-			}else{
+		countTime(maxTime, function() {  
+			// what happens every second
 	  		  countdown--;
 			  console.log(countdown);
 	  		  socket.broadcast.emit('timer', { countdown: countdown });
 			  socket.emit('timer', { countdown: countdown });
-			}
+		}, function(){
+			// last action before kick user
+			roomEmpty = true;
+			roomUser = '';
+			socket.emit('kick user');
 		});
 	  });
 	
@@ -138,34 +134,25 @@ io.on('connection', function (socket) {
 	
 });
 
-/**
- * A high resolution timer.
- */
-function timer(delay, callback)
-{
-    // self-reference
-    var self = this;
+function countTime(duration, action, callback) {
+     var expected = 1;
+     var secsLeft;
+     var inter;
+     var startT = new Date().getTime();
 
-    // attributes
-    var counter = 0;
-    var start = new Date().getTime();
+     inter = setInterval(function() {
+         //change in seconds
+         var sChange = Math.floor((new Date().getTime() - startT) / 1000);
 
-    /**
-     * Delayed running of the callback.
-     */
-    function delayed()
-    {
-        callback(delay);
-        counter ++;
-        var diff = (new Date().getTime() - start) - counter * delay;
-        setTimeout(delayed, delay - diff);
-    }
+         if (sChange === expected) {
+             expected++;
+             secsLeft = duration - sChange;
+			 action();
+         }
 
-    // start timer
-    delayed();
-    var timeout = setTimeout(delayed, delay);
-	
-	this.stop = function() {
-	        clearTimeout(timeout);
-	    }
-}
+         if (secsLeft === 0) {
+             clearInterval(inter);
+			 callback();
+         }
+     }, 100);
+ }
