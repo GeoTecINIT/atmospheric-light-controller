@@ -7,13 +7,14 @@ $(function() {
 	var option;
 	var theUser; 
 	var currentUser;
+	var reconnect = 0;
 	const $enter = $('#enter');
 	const $enterbtn  = $('#enter button');
 	const $game = $('#game');
 	const $counter = $('#counter');
 	const $message = $('#message');
 	
-	$message.html('Bienvenido! <p>Estamos cargando la plataforma...</p>');
+	$message.html('<h2>Bienvenido!</h2> <p>Estamos cargando la plataforma...</p>');
 	$enter.hide();
 	$game.hide();
   	$counter.hide();
@@ -40,6 +41,11 @@ $(function() {
 
 	  socket.on('reconnect_error', function () {
 	    console.log('attempt to reconnect has failed');
+		reconnect++;
+		if(reconnect>3){
+			socket.close();
+			$('#content').html('<p>Por falta de conexión con el servidor se ha cerrado la sesión, vuelva a intentar más tarde.</p>');
+		}
 	  });
 	  
 		//kicks the user if receives message.
@@ -75,6 +81,7 @@ function verifyRoomState(roomEmpty, currentUser){
 	  	$enter.hide();
 		$message.html('<p>Vaya!</p> <p>En este momento hay alguien en el cuarto de control. Mientras puedes disfrutar del espacio a tu alrededor.</p>');
 		$counter.show();
+		setInterval(checkRoom(), 3000);
 	}
 }
 
@@ -125,7 +132,7 @@ function exitRoom(){
 	
 }
 
-function checkRoom(callback){
+function checkRoom(){
 	//replace with socket checking
 	console.log('looking for room');
 	socket.emit('check room');
