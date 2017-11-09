@@ -95,10 +95,9 @@ var server = server.listen(8080);
 //some web-client connects
 io.on('connection', function (socket) {
 	socket.emit('your user', {user: theUser});
-	setInterval(function() {  socket.emit('check room', {status: roomEmpty, user: roomUser}); }, 3000);
+	socket.emit('check room', {status: roomEmpty, user: roomUser});
 	
-	  socket.on('user connected', function (data) {
-		
+	  socket.on('enter user', function (data) {
 		roomEmpty = false;
 		roomUser = theUser;
 		console.log('Your user: '+theUser+' - Empty room:'+roomEmpty+' - Current User: '+roomUser)
@@ -106,13 +105,14 @@ io.on('connection', function (socket) {
 		countTime(maxTime, function() {  
 			// what happens every second
 	  		  countdown--;
-			  console.log(countdown);
+			  //console.log(countdown);
 	  		  socket.broadcast.emit('timer', { countdown: countdown });
 			  socket.emit('timer', { countdown: countdown });
 		}, function(){
 			// last action before kick user
 			roomEmpty = true;
 			roomUser = '';
+			countdown = maxTime;
 			socket.emit('kick user');
 		});
 	  });
@@ -126,13 +126,16 @@ io.on('connection', function (socket) {
 	});
     socket.on('empty room', function (data) {
   	  roomEmpty = true;
+	  roomUser = '';
+	  socket.emit('check room',{status: roomEmpty, user: roomUser});
     });
-  socket.on('check room', function (data) {
-	  socket.emit('check room', {status: roomEmpty, user: roomUser});
-    //console.log(data.txt+' ('+theUser+')');
-  });
+    socket.on('kick user', function (data) {
+  	  socket.emit('kick user');
+    });
+  socket.on('check room', (data) =>  socket.emit('check room',{status: roomEmpty, user: roomUser}));
 	
 });
+
 
 function countTime(duration, action, callback) {
      var expected = 1;
@@ -147,6 +150,7 @@ function countTime(duration, action, callback) {
          if (sChange === expected) {
              expected++;
              secsLeft = duration - sChange;
+			 console.log(sChange+' - '+secsLeft+' - '+expected)
 			 action();
          }
 

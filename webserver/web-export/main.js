@@ -7,108 +7,128 @@ $(function() {
 	var option;
 	var theUser; 
 	var currentUser;
-	var $enter = $('#enter');
-	var $game = $('#game');
-	var $counter = $('#counter');
+	const $enter = $('#enter');
+	const $enterbtn  = $('#enter button');
+	const $game = $('#game');
+	const $counter = $('#counter');
+	const $message = $('#message');
 	
+	$message.html('Bienvenido! <p>Estamos cargando la plataforma...</p>');
 	$enter.hide();
 	$game.hide();
   	$counter.hide();
 	
 	socket.on('your user', (data)=>{
 		theUser = data.user;
+		//checkRoom(verifyRoomState);
 	});
-		socket.on('check room', (data)=>{
-			roomEmpty = data.status;
-			currentUser = data.user;
-			verifyRoomState(roomEmpty, currentUser);
+	
+	socket.on('check room', function(data){
+		roomEmpty = data.status;
+		currentUser = data.user;
+		console.log('room data obtained');
+		verifyRoomState(data.status, data.user);
+	})
+	
+	socket.on('disconnect', function () {
+	    console.log('you have been disconnected');
+	  });
+
+	  socket.on('reconnect', function () {
+		  console.log('you have been reconnected');
+	  });
+
+	  socket.on('reconnect_error', function () {
+	    console.log('attempt to reconnect has failed');
+	  });
+	  
+		//kicks the user if receives message.
+		socket.on('kick user', function(){
+			if(inRoom == true) {
+				exitRoom();
+			}
 		});
 	
-		socket.on('disconnect', function () {
-		    console.log('you have been disconnected');
-		  });
-
-		  socket.on('reconnect', function () {
-			  console.log('you have been reconnected');
-		  });
-
-		  socket.on('reconnect_error', function () {
-		    console.log('attempt to reconnect has failed');
-		  });
+		// shows the timer
+		socket.on('timer', (data)=>{
+			if(inRoom == true) {
+				$('#timer').html(Math.floor((data.countdown/60) << 0)+':'+data.countdown);
+			}else{
+				$counter.children('span').html(Math.floor((data.countdown/60) << 0)+':'+data.countdown);
+			}
+			// 
+		});
 	
 function verifyRoomState(roomEmpty, currentUser){
-	if(roomEmpty){
+	console.log('loading space...');
+	if(roomEmpty == true){
 		console.log('Control room is empty');
 		$enter.show();
 		$counter.hide();
 		$game.hide();
+		$message.html('<p>Estamos Listos!</p> <p>Ahora podrás modificar el sistema desde el cuarto de control. Cuando estés listo presiona el botón.</p>');
 		enterRoom();
 	}
-	if(!roomEmpty && currentUser != theUser){
+	if(roomEmpty == false && currentUser != theUser){
 		console.log('Control room is NOT empty');
 	  	$game.hide();
 	  	$enter.hide();
+		$message.html('<p>Vaya!</p> <p>En este momento hay alguien en el cuarto de control. Mientras puedes disfrutar del espacio a tu alrededor.</p>');
 		$counter.show();
-		socket.on('timer', (data)=>{
-			$counter.children('span').html(Math.floor((data.countdown/1000/60) << 0)+':'+Math.floor((data.countdown/1000) % 60));
-			//
-		});
 	}
 }
 
 function enterRoom(){
-	$enter.children('button').on('click',function(){
-		socket.emit('user connected', { txt: 'User entered the room' });		
-		roomEmpty = false; inRoom = true;
-		$enter.hide();
-		$game.show();
-		// if press exit button disconnects the user
+	console.log('We are ready');
+	$enterbtn.on('click',function(e){
+		$(this).off('click');  // prevents double click :D 
+			console.log('Start your engines...');
+			//if user is not in the room
+				socket.emit('enter user', { txt: 'User entered the room' });		
+				roomEmpty = false; 
+				inRoom = true;
+				$enter.hide();
+				$game.show();
+				$message.html('<p>Ahora estas en el cuarto de control.</p> <p>Puedes seleccionar diferentes modos y el espacio cambiará. </p>');
 		
-		$('#exit').on('click', function(){
-			//exitRoom(); 
-			return false;
-		});
-		// muestra el timer
-		socket.on('timer', (data)=>{
-			$('#timer').html(Math.floor((data.countdown/60) << 0)+':'+data.countdown);
-			// 
-		});
-		socket.on('kick user', function(){
-			exitRoom();
-		});
+				// if press exit button disconnects the user
+				$('#exit').click(function(){
+					socket.emit('kick user');
+					return false;
+				});
+			
+			
+				// Adds selector functionality
+		   	  	$("#selector").change(function(){
+		    	 	$( "#selector option:selected" ).each(function() {
+		         		option = $(this).val();
+		     		});
+		      	$.post("/option",{option: option}, function(data){
+		      	  if(data==='done')
+		       	   {
+		          	  console.log("sent success");
+		         	 }
+		      	});
+		    	});
+		  
 		
-	    $("#selector").change(function(){
-	     $( "#selector option:selected" ).each(function() {
-	         option = $(this).val();
-	     });
-	      $.post("/option",{option: option}, function(data){
-	        if(data==='done')
-	          {
-	            console.log("sent success");
-	          }
-	      });
-	    });
 	});
 }
 
 function exitRoom(){
-	$counter.show();
+	//$counter.show();
 	$game.hide();
 	roomEmpty = true;
 	inRoom = false;
-	//checkRoom(verifyRoomState);
+	console.log('room closed');
+	socket.emit('empty room');
+	
 }
 
 function checkRoom(callback){
 	//replace with socket checking
-	//socket.emit('check room'); 
-	console.log('checking room...');
-	socket.on('check room', (data)=>{
-		roomEmpty = data.status;
-		console.log('room data obtained');
-		return callback(data.status, data.user);
-		
-	});
+	console.log('looking for room');
+	socket.emit('check room');
+	
 }
-
 });
