@@ -17,6 +17,8 @@ var roomEmpty = true;
 var roomUser = '';
 var maxTime = 20; //set maximum seconds of practice 60 = 1m
 var countdown = maxTime; 
+var countLive = false;
+var inter;
 
 //using node-osc library: 'npm install node-osc'
 //this will also install 'osc-min'
@@ -94,69 +96,85 @@ var server = server.listen(8080);
 
 //some web-client connects
 io.on('connection', function (socket) {
+	// when connected sends first user information and room state
 	socket.emit('your user', {user: theUser});
 	socket.emit('check room', {status: roomEmpty, user: roomUser});
 	
+	//when user enters the control room
 	  socket.on('enter user', function (data) {
 		roomEmpty = false;
 		roomUser = theUser;
 		console.log('Your user: '+theUser+' - Empty room:'+roomEmpty+' - Current User: '+roomUser)
 		countdown = maxTime;
-		countTime(maxTime, function() {  
-			// what happens every second
-	  		  countdown--;
-			  //console.log(countdown);
-	  		  socket.broadcast.emit('timer', { countdown: countdown });
-			  socket.emit('timer', { countdown: countdown });
-		}, function(){
-			// last action before kick user
-			roomEmpty = true;
-			roomUser = '';
-			countdown = maxTime;
+		if(countLive == true){
 			socket.emit('kick user');
+			clearInterval(inter);
+			console.log('another counter is happening');
+		}else if(countLive == false){
+			countTime(maxTime, function() {  
+				// what happens every second
+		  		  countdown--;
+				  //console.log(countdown);
+		  		  socket.broadcast.emit('timer', { countdown: countdown });
+				  socket.emit('timer', { countdown: countdown });
+			}, function(){
+				// last action before kick user
+				roomEmpty = true;
+				roomUser = '';
+				countdown = maxTime;
+				socket.emit('kick user');
+			});
+		  
+		}
 		});
-	  });
 	
-	//some web-client disconnects
+	//some client disconnects
 	socket.on('disconnect', function (data) {
 		console.log("user disconnected: " + data+' ('+theUser+') at '+ countdown+' miliseconds');
 		roomEmpty = true;
 		roomUser = '';
-		//socket.emit('check room', {status: roomEmpty, user: roomUser});
+		countLive = false;
+		clearInterval(inter);
+		socket.emit('kick user');
 	});
+	// when client is kicked or press exit button
     socket.on('empty room', function (data) {
   	  roomEmpty = true;
 	  roomUser = '';
+	  countLive = false;
+	  clearInterval(inter);
 	  socket.emit('check room',{status: roomEmpty, user: roomUser});
     });
-    socket.on('kick user', function (data) {
+    socket.on('kick user', function (data) { // the client will response "empty room"
   	  socket.emit('kick user');
     });
+		//when client ask for room status
   socket.on('check room', (data) =>  socket.emit('check room',{status: roomEmpty, user: roomUser}));
 	
 });
 
-
+//counter
 function countTime(duration, action, callback) {
-     var expected = 1;
-     var secsLeft;
-     var inter;
-     var startT = new Date().getTime();
+		countLive = true;
+        var expected = 1;
+        var secsLeft;
+        var startT = new Date().getTime();
 
-     inter = setInterval(function() {
-         //change in seconds
-         var sChange = Math.floor((new Date().getTime() - startT) / 1000);
+        inter = setInterval(function() {
+            //change in seconds
+            var sChange = Math.floor((new Date().getTime() - startT) / 1000);
 
-         if (sChange === expected) {
-             expected++;
-             secsLeft = duration - sChange;
-			 console.log(sChange+' - '+secsLeft+' - '+expected)
-			 action();
-         }
+            if (sChange === expected) {
+                expected++;
+                secsLeft = duration - sChange;
+   			 console.log(sChange+' - '+secsLeft+' - '+expected)
+   			 action();
+            }
 
-         if (secsLeft === 0) {
-             clearInterval(inter);
-			 callback();
-         }
-     }, 100);
+            if (secsLeft === 0) {
+                clearInterval(inter);
+   			 	callback();
+				countLive = false;
+            }
+        }, 100);
  }
