@@ -50,14 +50,13 @@
 				<div id="counter">El tiempo de espera estimado es de <span></span> minutos</div>
 				<div id="waiting">Personas esperando: <span></span></div>
 				<div id="enter"><button>Entrar al cuarto de control</button></div>
+				
 			</div>
-
-			
-			
-			<form id="game" action="" method="post" enctype="multipart/form-data">
+			<div id="game">
+			<form  action="" method="post" enctype="multipart/form-data">
 			         <fieldset>
-			            <label for="name">Elije el modo que quieres</label>
-			            <select name="selector" id="selector" onchange="" size="1">
+			            <label for="selector">Elije el modo que quieres</label>
+			            <select name="selector" id="selector">
 			            	<option value="A">option1</option>
 			            	<option value="B">option2</option>
 			            	<option value="C">option3</option>
@@ -69,7 +68,31 @@
 					 <fieldset>Te quedan <span id="timer"></span> minutos<fieldset>
 					 <fieldset><button id="exit">Salir</button></fieldset>
 			  </form>
-			  
+			</div> 
+  			<div id="poll">
+  				<h3>Cómo valoras la puesta actual?</h3>
+  				<p id="current-option">Ahora estas experimentando el modo <span></span></p>
+  				<form action="poll-form" method="post" accept-charset="utf-8">
+  					<fieldset>
+  						<label for="poll-value">¿Cómo valoras la experiencia?</label>
+  						<input type="radio" name="poll-value" value="1">  1</br>
+  						<input type="radio" name="poll-value" value="2">  2</br>
+  						<input type="radio" name="poll-value" value="3">  3</br>
+  						<input type="radio" name="poll-value" value="4">  4</br>
+  						<input type="radio" name="poll-value" value="5">  5</br>
+  					</fieldset>
+  					<fieldset>
+  						<label for="poll-emotion">Dinos qué sientes</label>
+  						<select name="poll-emotion" id="poll-emotion">
+  							<option value="option1">option1</option>
+  							<option value="option2">option2</option>
+  						</select>
+  					</fieldset>
+					<input type="hidden" name="poll-option" value="" id="poll-option">
+  					<p><input type="submit" value="Enviar"></p>
+  				</form>
+				
+  			</div>
 		</div>
 	</body>
 </html>

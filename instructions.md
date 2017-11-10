@@ -7,7 +7,7 @@ Processing controller:
 
 Mongodb: 
 - Database: atmospheric-light-controller
-- Collection: logs
+- Collection: logs, vals
 >> To have launchd start mongodb now and restart at login:
   brew services start mongodb
 >> Or, if you don't want/need a background service you can just run:
