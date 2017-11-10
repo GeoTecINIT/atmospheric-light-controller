@@ -20,6 +20,7 @@ var maxTime = 20; //set maximum seconds of practice 60 = 1m
 var countdown = maxTime;  // the countdown that is send to 
 var countLive = false; // if it is counting
 var inter; // the count interval (unique for all the interface)
+var theOption; //the current option running
 
 //using node-osc library: 'npm install node-osc'
 //this will also install 'osc-min'
@@ -67,12 +68,14 @@ app.get('/',function(req, res) {
    	  	 }	 
 	});
 app.post('/option',function(req, res) {
-	var option = req.body.option; //get option from form		
+	var option = req.body.option; //get option from form	
+	theOption = option;	
 		// save selected option in database
 	console.log('option received: '+option);
 		MongoClient.connect(MongoUrl, function(err, db) {
 		  assert.equal(null, err);
 		  var MongoCollection = db.collection('logs');
+		  
 		  var tempOption = {  user: req.session_state.username , option: option, timestamp: new Date(Date.now()) };
 		  MongoCollection.insert(tempOption, function(err, result) {
               if (!err) {
@@ -92,7 +95,31 @@ app.post('/option',function(req, res) {
  		msg.append(req.body.option)
  		oscClient.send(msg)
     });
+app.post('/poll', function(req, res){
+	var pollVal = req.body.val;
+	var pollEmo = req.body.emo;
+	var option = req.body.option;
+	console.log('Valoration received is  '+pollVal + ' with '+pollEmo+' emotion');
+	
+	MongoClient.connect(MongoUrl, function(err, db) {
+	  assert.equal(null, err);
+	  var MongoCollection = db.collection('vals');
+	  var tempOption = {  user: req.session_state.username, option: option, val: pollVal, emo: pollEmo, timestamp: new Date(Date.now()) };
+	  MongoCollection.insert(tempOption, function(err, result) {
+          if (!err) {
+			  console.log(result);
+              return res.send(result);
+          } else {
+			  console.log(err);
+			  return res.send(err);
+          }
+	    });
+		console.log('Value saved in db.');
+	  db.close();
 
+	});
+	
+});
 // deletes cokie session
 app.get('/logout', function (req, res) {
 console.log('User deleted:'+req.session_state.username);
@@ -111,7 +138,7 @@ var server = server.listen(8080);
 io.on('connection', function (socket) {
 	// when connected sends first user information and room state
 	socket.emit('your user', {user: theUser, socketid: socket.id});
-	socket.emit('check room', {status: roomEmpty, user: roomUser.userid});
+	socket.emit('check room', {status: roomEmpty, user: roomUser.userid, option: theOption});
 	waitinglist++;
 	socket.emit('waiting',{waiting: waitinglist});
 	socket.broadcast.emit('waiting',{waiting: waitinglist});
@@ -122,7 +149,8 @@ io.on('connection', function (socket) {
 		roomEmpty = false;
 		roomUser.userid = data.user;
 		roomUser.socketid = socket.id;
-		socket.broadcast.emit('check room', {status: roomEmpty, user: roomUser.userid});
+		socket.emit('check room', {status: roomEmpty, user: roomUser.userid, option: theOption});
+		socket.broadcast.emit('check room', {status: roomEmpty, user: roomUser.userid, option: theOption});
 		socket.emit('waiting',{waiting: waitinglist});
 		socket.broadcast.emit('waiting',{waiting: waitinglist});
 		console.log('User entered the room - User socket: '+roomUser.socketid+' - Current socket: '+socket.id)
@@ -172,14 +200,14 @@ io.on('connection', function (socket) {
 	  	  roomUser = {userid: '', socketid: ''};
 	  	  countLive = false;
 	  	  clearInterval(inter);
-	  	  socket.emit('check room',{status: roomEmpty, user: roomUser});
+	  	  socket.emit('check room',{status: roomEmpty, user: roomUser, option: theOption});
 		}
     });
     socket.on('kick user', function (data) { // the client will response "empty room"
   	  socket.emit('kick user');
     });
 		//when client ask for room status
-  socket.on('check room', (data) =>  socket.emit('check room',{status: roomEmpty, user: roomUser.userid}));
+  socket.on('check room', (data) =>  socket.emit('check room',{status: roomEmpty, user: roomUser.userid, option: theOption}));
 	
 });
 

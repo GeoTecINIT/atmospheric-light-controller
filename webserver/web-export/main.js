@@ -8,6 +8,7 @@ $(function() {
 	var theUser; 
 	var currentUser;
 	var reconnect = 0;
+	var theOption;
 	const $enter = $('#enter');
 	const $enterbtn  = $('#enter button');
 	const $game = $('#game');
@@ -29,7 +30,10 @@ $(function() {
 	socket.on('check room', function(data){
 		roomEmpty = data.status;
 		currentUser = data.user;
-		console.log('room data obtained. Room is:'+ roomEmpty);
+		theOption = data.option;
+		$('#current-option span').html(data.option);
+		$('#poll-option').val(data.option);
+		console.log('room data obtained. Room is:'+ roomEmpty+ ' and option is '+theOption);
 		verifyRoomState(data.status, data.user);
 	})
 	
@@ -50,7 +54,7 @@ $(function() {
 		}
 	  });
 	  
-		//kicks the user if receives message.
+		// kicks the user if receives message.
 		socket.on('kick user', function(){
 			if(inRoom == true) {
 				exitRoom();
@@ -66,15 +70,19 @@ $(function() {
 			}
 			// 
 		});
+		
+		// shows waiting list
 		socket.on('waiting', (data)=>{
 				$waiting.children('span').html(data.waiting);
 		});
-	
 		
-		// Adds selector functionality
+		
+		// selector functionality
    	  	$("#selector").change(function(){
 			$("#selector").attr('disabled', true);
          	option = $('#selector option:selected').val();
+			$('#current-option span').html(option);
+			$('#poll-option').val(option);
 		      $.post("/option",{option: option}, function(data){
 					if(data.result.ok == 1){console.log('data sent');}
 		      	})
@@ -86,6 +94,28 @@ $(function() {
 		   			 console.log(err);
 		  		});
     	});
+		
+		//poll functionality
+		$('#poll').submit(function(){
+			var pollVal = $('#poll input[name="poll-value"]:checked').val();
+			var pollEmo = $('#poll option:selected').val();
+			var pollOpt = $('#poll input[name="poll-option"]').val();
+			$('#poll input[name="poll-value"]:checked').attr('checked', false);
+			$('#poll option:selected').attr('selected', false);
+			$('#poll input[type="submit"]').attr('disabled', true).val('enviando...');
+	      $.post("/poll",{val: pollVal, emo: pollEmo, option: pollOpt}, function(data){
+				if(data.result.ok == 1){console.log('poll sent');}
+				
+	      	})
+			.done(function(data) {
+				if(data.insertedCount == 1){console.log('poll writen');}
+				$('#poll input[type="submit"]').attr('disabled', false).val('Enviar');
+	 	 	  })
+	  	 	.fail(function(err) {
+	   			 console.log(err.statusText);
+	  		}); 
+			return false;
+		});
 		
 function verifyRoomState(roomEmpty, currentUser){
 	console.log('loading space...');
@@ -109,9 +139,11 @@ function verifyRoomState(roomEmpty, currentUser){
 
 function enterRoom(){
 	// room functionality
+	
 	$enterbtn.on('click',function(){
-		$enterbtn.off('click');  // prevents double click :D 
+			$enterbtn.off('click');  // prevents double click :D 
 			console.log('Start your engines...');
+			$('#selector').val(theOption);
 			//if user is not in the room
 				socket.emit('enter user', { txt: 'User entered the room', user: theUser });		
 				roomEmpty = false; 
