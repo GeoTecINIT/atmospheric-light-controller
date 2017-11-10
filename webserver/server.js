@@ -11,10 +11,11 @@ app.use(bodyParser.urlencoded({ extended: true }));
 
 var maxUsers = 1;
 var numUsers = 0;
-var theUser;
+var waitinglist = 0;
+var theUser; // DEPRE
 var theRoom = 'control room';
 var roomEmpty = true;
-var roomUser = '';
+var roomUser = {userid: '', socketid: ''};
 var maxTime = 20; //set maximum seconds of practice 60 = 1m
 var countdown = maxTime; 
 var countLive = false;
@@ -94,17 +95,25 @@ console.log('User deleted:'+req.session_state.username);
 //nodejs server listens to msgs on port 8080
 var server = server.listen(8080);
 
+// *** //
+// Socket configuration
+// *** //
+
 //some web-client connects
 io.on('connection', function (socket) {
 	// when connected sends first user information and room state
-	socket.emit('your user', {user: theUser});
-	socket.emit('check room', {status: roomEmpty, user: roomUser});
-	
+	socket.emit('your user', {user: theUser, socketid: socket.id});
+	socket.emit('check room', {status: roomEmpty, user: roomUser.userid});
+	waitinglist++;
 	//when user enters the control room
 	  socket.on('enter user', function (data) {
+		waitinglist--;	  
+		numUsers++;
 		roomEmpty = false;
-		roomUser = theUser;
-		console.log('Your user: '+theUser+' - Empty room:'+roomEmpty+' - Current User: '+roomUser)
+		roomUser.userid = data.user;
+		roomUser.socketid = socket.id;
+		socket.broadcast.emit('check room', {status: roomEmpty, user: roomUser.userid});
+		console.log('User entered the room - User socket: '+roomUser.socketid+' - Current socket: '+socket.id)
 		countdown = maxTime;
 		if(countLive == true){
 			socket.emit('kick user');
@@ -118,10 +127,7 @@ io.on('connection', function (socket) {
 		  		  socket.broadcast.emit('timer', { countdown: countdown });
 				  socket.emit('timer', { countdown: countdown });
 			}, function(){
-				// last action before kick user
-				roomEmpty = true;
-				roomUser = '';
-				countdown = maxTime;
+				// kick user
 				socket.emit('kick user');
 			});
 		  
@@ -131,25 +137,35 @@ io.on('connection', function (socket) {
 	//some client disconnects
 	socket.on('disconnect', function (data) {
 		console.log("user disconnected: " + data+' ('+theUser+') at '+ countdown+' miliseconds');
-		roomEmpty = true;
-		roomUser = '';
-		countLive = false;
-		clearInterval(inter);
-		socket.emit('kick user');
+		if(socket.id == roomUser.socketid){
+			roomEmpty = true;
+			roomUser = {userid: '', socketid: ''};
+			countLive = false;
+			clearInterval(inter);
+			socket.emit('kick user');
+			numUsers--;
+		}else{
+			waitinglist--;
+		}
 	});
 	// when client is kicked or press exit button
     socket.on('empty room', function (data) {
-  	  roomEmpty = true;
-	  roomUser = '';
-	  countLive = false;
-	  clearInterval(inter);
-	  socket.emit('check room',{status: roomEmpty, user: roomUser});
+		waitinglist++;
+		console.log('User left the room: '+theUser+' - Current Socket: '+roomUser.socketid+' - Current socket: '+socket.id)
+		if(socket.id == roomUser.socketid){
+		  numUsers--;
+	      roomEmpty = true;
+	  	  roomUser = {userid: '', socketid: ''};
+	  	  countLive = false;
+	  	  clearInterval(inter);
+	  	  socket.emit('check room',{status: roomEmpty, user: roomUser});
+		}
     });
     socket.on('kick user', function (data) { // the client will response "empty room"
   	  socket.emit('kick user');
     });
 		//when client ask for room status
-  socket.on('check room', (data) =>  socket.emit('check room',{status: roomEmpty, user: roomUser}));
+  socket.on('check room', (data) =>  socket.emit('check room',{status: roomEmpty, user: roomUser.userid}));
 	
 });
 

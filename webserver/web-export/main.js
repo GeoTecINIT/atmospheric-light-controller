@@ -21,6 +21,7 @@ $(function() {
 	
 	socket.on('your user', (data)=>{
 		theUser = data.user;
+		console.log('Your user:' +theUser);
 		//checkRoom(verifyRoomState);
 	});
 	
@@ -91,7 +92,7 @@ function enterRoom(){
 		$(this).off('click');  // prevents double click :D 
 			console.log('Start your engines...');
 			//if user is not in the room
-				socket.emit('enter user', { txt: 'User entered the room' });		
+				socket.emit('enter user', { txt: 'User entered the room', user: theUser });		
 				roomEmpty = false; 
 				inRoom = true;
 				$enter.hide();
@@ -100,7 +101,7 @@ function enterRoom(){
 		
 				// if press exit button disconnects the user
 				$('#exit').click(function(){
-					socket.emit('kick user');
+					socket.emit('kick user', {user: theUser});
 					return false;
 				});
 			
@@ -128,7 +129,7 @@ function exitRoom(){
 	roomEmpty = true;
 	inRoom = false;
 	console.log('room closed');
-	socket.emit('empty room');
+	socket.emit('empty room', { user : theUser });
 	
 }
 
