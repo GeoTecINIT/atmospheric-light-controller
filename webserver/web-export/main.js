@@ -1,6 +1,5 @@
 $(function() {
 	var socket = io.connect('http://' + location.hostname + ':8080'); 
-
 	var roomEmpty = false;
 	var inRoom = false;
 	var roomTime = 0;

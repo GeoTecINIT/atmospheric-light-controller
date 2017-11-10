@@ -4,52 +4,36 @@
 		<title>Atmospheric Light Controller</title>
 		<link rel="icon"  type="image/x-icon" href="data:image/x-icon;base64,AAABAAEAEBAQAAEABAAoAQAAFgAAACgAAAAQAAAAIAAAAAEABAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAADAQAAVzABAEAjBQAaDwYAWjUGAGE6CQBrQQ0ATS8PAFhAJwBUQC8AbFI6AHVXPACBZk4A4NrWAPb19QAAAAAAAMmZmZmZmgAJIwAAAAAAcMIjPjA+PjAKpxIuMDMzMAm0Ii4zMzMACaIiLt3dMAAJtyIuIzPQAAm0Un5yM+IzKLRkfncy4iIotRF+dyLkIiq0QX53F+EiGrQUTkd34iIatEVu7u5iIVrBVVRBRFRVbAtGZGZla2uwAMu7u7u8vADAAwAAgAEAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAIABAADAAwAA" />
 		<script type="text/javascript" src="/socket.io/socket.io.js"></script>
-	    <script src="//ajax.googleapis.com/ajax/libs/jquery/2.1.1/jquery.min.js">  </script>
+		<script src="static/jquery-3.2.1.min.js"></script>
+		<script src="static/popper.min.js"></script>
+		<script src="static/bootstrap.min.js"></script>
 		<script type="text/javascript" src="static/main.js"></script>
-		<style type="text/css">
-	body {
-	  background-color: #333; color: #bbb; line-height: normal;
-	  font-family: Lucida Grande, Lucida Sans, Arial, Helvetica Neue, Verdana, Geneva, sans-serif;
-	  font-size: 11px; font-weight: normal; text-decoration: none;
-		  line-height: 1.5em;
-	}
-	a img { 
-		border: 0px solid transparent;
-	}
-	a, a:link, a:visited, a:active, a:hover { 
-		color: #cdcdcd; text-decoration: underline;
-	}
-	h1 {
-	    font-family: Arial, Helvetica Neue, Verdana, Geneva, sans-serif;
-		width: 100%; letter-spacing: 0.1em;
-		margin-bottom: 1em; font-size: 1.65em;
-	}
-	canvas { 
-		display: block; 
-		outline: 0px; 
-		margin-bottom: 1.5em; 
-	}
-	#content { 
-		margin: 50px auto 0px auto; padding: 25px 25px 15px 25px;
-		width: @@width@@px; min-width: 300px; overflow: auto;
-		border-left: 1px solid #444; border-top: 1px solid #444; 
-		border-right: 1px solid #333; border-bottom: 1px solid #333;
-		background-color: #3d3d3d;
-	}
-		</style>
+		 <link href="static/bootstrap.min.css" rel="stylesheet">
+		 <link href="static/cover.css" rel="stylesheet">
+
 		<!--[if lt IE 9]>
 			
 		<![endif]-->
 		
 	</head>
 	<body>
-		<div id="content">
-			<h1>Plataforma de control</h1>
+	    <div class="site-wrapper">
+	    <div class="site-wrapper-inner">
+	    <div class="cover-container" id="content">
+			<header class="masthead clearfix">
+			            <div class="inner">
+			              <h3 class="masthead-brand">Plataforma de control</h3>
+			             
+			            </div>
+			          </header>
+					  
+			
 			<div id="welcome">
-				<div id="message">Bienvenido!</div>
-				<div id="counter">El tiempo de espera estimado es de <span></span> minutos</div>
-				<div id="waiting">Personas esperando: <span></span></div>
-				<div id="enter"><button>Entrar al cuarto de control</button></div>
+				<h1 class="cover-heading">Bienvenido!</h1>
+				<p id="message"  class="lead"></p>
+				<p id="counter" class="lead">El tiempo de espera estimado es de <span></span> minutos</p>
+				<p id="waiting" class="lead">Personas esperando: <span></span></p>
+				<div id="enter"><button class="btn btn-lg btn-secondary">Entrar al cuarto de control</button></div>
 				
 			</div>
 			<div id="game">
@@ -66,7 +50,7 @@
 			            </select>
 			         </fieldset>
 					 <fieldset>Te quedan <span id="timer"></span> minutos<fieldset>
-					 <fieldset><button id="exit">Salir</button></fieldset>
+					 <fieldset><button id="exit" class="btn btn-lg btn-secondary">Salir</button></fieldset>
 			  </form>
 			</div> 
   			<div id="poll">
@@ -89,10 +73,18 @@
   						</select>
   					</fieldset>
 					<input type="hidden" name="poll-option" value="" id="poll-option">
-  					<p><input type="submit" value="Enviar"></p>
+  					<p><input type="submit" class="btn btn-lg btn-secondary" value="Enviar"></p>
   				</form>
 				
   			</div>
+			
+			<footer class="mastfoot">
+			            <div class="inner">
+			              <p>Cover template for <a href="https://getbootstrap.com/">Bootstrap</a>, by <a href="https://twitter.com/mdo">@mdo</a>.</p>
+			            </div>
+			          </footer>
+		</div>
+		</div>
 		</div>
 	</body>
 </html>
