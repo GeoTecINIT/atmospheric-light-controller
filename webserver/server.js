@@ -2,10 +2,24 @@ var express = require('express');
 var app = express();
 var clientSessions = require("client-sessions");
 var crypto = require('crypto');
-//var socket = require('socket.io');
+var server = require('http').Server(app);
+var io = require('socket.io')(server);
 var bodyParser = require('body-parser');
 app.use(bodyParser.json()); 
 app.use(bodyParser.urlencoded({ extended: true })); 
+
+
+var maxUsers = 1; // Quantity of users allowed in the room (not in use, to be implemented)
+var numUsers = 0; // Quantity of users in the room
+var waitinglist = 0; // Quantity of users connected and waiting for enter the room
+var theUser; // the user session to save in db
+var theRoom = 'control room'; // the control room
+var roomEmpty = true; // if the room is empty, used to check before allow access
+var roomUser = {userid: '', socketid: ''}; // Who is in the room
+var maxTime = 20; //set maximum seconds of practice 60 = 1m
+var countdown = maxTime;  // the countdown that is send to 
+var countLive = false; // if it is counting
+var inter; // the count interval (unique for all the interface)
 
 //using node-osc library: 'npm install node-osc'
 //this will also install 'osc-min'
@@ -32,32 +46,47 @@ MongoClient.connect(MongoUrl, function(err, db) {
 
 
 
-//app.use(express.static(__dirname + '/'));
-app.get('/',function(req, res) {
- 	   res.sendFile("web-export/index.html", { root: __dirname });
+app.use('/static', express.static(__dirname + '/web-export'));
+app.get('/',function(req, res) {	
+		
 	   //check if cookie session is already set
 	   if (req.session_state.username) { 
 		   console.log('User connected:'+req.session_state.username);
+		   theUser = req.session_state.username;
 	     } else { //if not cookie found, assigns new token as username
 			 var token = crypto.randomBytes(24).toString('hex');
 		     req.session_state.username = token;
 		     console.log('User created:'+req.session_state.username);
+			theUser = req.session_state.username;
 	     }
+	  		// load form
+   	  	 if(theUser){
+			 res.sendFile(__dirname +"/web-export/index.html");
+		 }else{
+			 res.send('Hubo un problema cargando el sitio. Lo sentimos!');
+   	  	 }	 
 	});
 app.post('/option',function(req, res) {
 	var option = req.body.option; //get option from form		
 		// save selected option in database
+	console.log('option received: '+option);
 		MongoClient.connect(MongoUrl, function(err, db) {
 		  assert.equal(null, err);
 		  var MongoCollection = db.collection('logs');
 		  var tempOption = {  user: req.session_state.username , option: option, timestamp: new Date(Date.now()) };
 		  MongoCollection.insert(tempOption, function(err, result) {
-		      if(err) { throw err; }
+              if (!err) {
+				  console.log(result);
+                  return res.send(result);
+              } else {
+				  console.log(err);
+				  return res.send(err);
+              }
 		    });
 			console.log(option+' saved in db.');
 		  db.close();
+
 		});
-        //res.send('processing the login form!');
 		// sending the variable to Processing
 		var msg =  new osc.Message('/clientMsg')
  		msg.append(req.body.option)
@@ -72,37 +101,110 @@ console.log('User deleted:'+req.session_state.username);
 });
 
 //nodejs server listens to msgs on port 8080
-var server = app.listen(8080);
-//io sockets would address to all the web-clients talking to this nodejs server
-//var io = socket.listen(server);
+var server = server.listen(8080);
 
-
+// *** //
+// Socket configuration
+// *** //
 
 //some web-client connects
-//io.sockets.on('connection', function (socket) {
-//	console.log("connnect");
-	//msg sent whenever someone connects
-//	socket.emit("serverMsg",{txt:"Connected to server"});
+io.on('connection', function (socket) {
+	// when connected sends first user information and room state
+	socket.emit('your user', {user: theUser, socketid: socket.id});
+	socket.emit('check room', {status: roomEmpty, user: roomUser.userid});
+	waitinglist++;
+	socket.emit('waiting',{waiting: waitinglist});
+	socket.broadcast.emit('waiting',{waiting: waitinglist});
+	//when user enters the control room
+	  socket.on('enter user', function (data) {
+		waitinglist--;	  
+		numUsers++;
+		roomEmpty = false;
+		roomUser.userid = data.user;
+		roomUser.socketid = socket.id;
+		socket.broadcast.emit('check room', {status: roomEmpty, user: roomUser.userid});
+		socket.emit('waiting',{waiting: waitinglist});
+		socket.broadcast.emit('waiting',{waiting: waitinglist});
+		console.log('User entered the room - User socket: '+roomUser.socketid+' - Current socket: '+socket.id)
+		countdown = maxTime;
+		if(countLive == true){
+			socket.emit('kick user');
+			clearInterval(inter);
+			console.log('another counter is happening');
+		}else if(countLive == false){
+			countTime(maxTime, function() {  
+				// what happens every second
+		  		  countdown--;
+				  //console.log(countdown);
+		  		  socket.broadcast.emit('timer', { countdown: countdown });
+				  socket.emit('timer', { countdown: countdown });
+			}, function(){
+				// kick user
+				socket.emit('kick user');
+			});
+		  
+		}
+		});
 	
-	//some web-client disconnects
-//	socket.on('disconnect', function (socket) {
-//		console.log("disconnect");
-//	});
+	//some client disconnects
+	socket.on('disconnect', function (data) {
+		console.log("user disconnected: " + data+' ('+theUser+') at '+ countdown+' miliseconds');
+		if(socket.id == roomUser.socketid){
+			roomEmpty = true;
+			roomUser = {userid: '', socketid: ''};
+			countLive = false;
+			clearInterval(inter);
+			socket.emit('kick user');
+			numUsers--;
+		}else{
+			waitinglist--;
+		}
+	});
+	// when client is kicked or press exit button
+    socket.on('empty room', function (data) {
+		waitinglist++;
+		socket.emit('waiting',{waiting: waitinglist});
+		socket.broadcast.emit('waiting',{waiting: waitinglist});
+		console.log('User left the room: '+theUser+' - Current Socket: '+roomUser.socketid+' - Current socket: '+socket.id)
+		if(socket.id == roomUser.socketid){
+		  numUsers--;
+	      roomEmpty = true;
+	  	  roomUser = {userid: '', socketid: ''};
+	  	  countLive = false;
+	  	  clearInterval(inter);
+	  	  socket.emit('check room',{status: roomEmpty, user: roomUser});
+		}
+    });
+    socket.on('kick user', function (data) { // the client will response "empty room"
+  	  socket.emit('kick user');
+    });
+		//when client ask for room status
+  socket.on('check room', (data) =>  socket.emit('check room',{status: roomEmpty, user: roomUser.userid}));
 	
-	//some web-client sents in a msg
-//	socket.on('clientMsg', function (data) {
-//		console.log(data.txt);
-		//pass the msg on to the oscClient
+});
 
-//	});
-	
-	//received an osc msg
-//	oscServer.on("message", function (msg, rinfo) {
-//		console.log("Message:");
-//		console.log(msg);
-//		//pass the msg on to all of the web-clients
-		//msg[1] stands for the first argument received which in this case should be a string
-//		socket.emit("serverMsg",{txt: msg[1]});
-//	});
-//});
+//counter
+function countTime(duration, action, callback) {
+		countLive = true;
+        var expected = 1;
+        var secsLeft;
+        var startT = new Date().getTime();
 
+        inter = setInterval(function() {
+            //change in seconds
+            var sChange = Math.floor((new Date().getTime() - startT) / 1000);
+
+            if (sChange === expected) {
+                expected++;
+                secsLeft = duration - sChange;
+   			 console.log('Seconds left in room :'+secsLeft)
+   			 action();
+            }
+
+            if (secsLeft === 0) {
+                clearInterval(inter);
+   			 	callback();
+				countLive = false;
+            }
+        }, 100);
+ }

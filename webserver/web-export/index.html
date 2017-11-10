@@ -1,26 +1,11 @@
 <!DOCTYPE html>
 	<head>
 		<meta http-equiv="content-type" content="text/html; charset=utf-8" />
-		<title>Change whatever title here</title>
+		<title>Atmospheric Light Controller</title>
 		<link rel="icon"  type="image/x-icon" href="data:image/x-icon;base64,AAABAAEAEBAQAAEABAAoAQAAFgAAACgAAAAQAAAAIAAAAAEABAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAADAQAAVzABAEAjBQAaDwYAWjUGAGE6CQBrQQ0ATS8PAFhAJwBUQC8AbFI6AHVXPACBZk4A4NrWAPb19QAAAAAAAMmZmZmZmgAJIwAAAAAAcMIjPjA+PjAKpxIuMDMzMAm0Ii4zMzMACaIiLt3dMAAJtyIuIzPQAAm0Un5yM+IzKLRkfncy4iIotRF+dyLkIiq0QX53F+EiGrQUTkd34iIatEVu7u5iIVrBVVRBRFRVbAtGZGZla2uwAMu7u7u8vADAAwAAgAEAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAIABAADAAwAA" />
+		<script type="text/javascript" src="/socket.io/socket.io.js"></script>
 	    <script src="//ajax.googleapis.com/ajax/libs/jquery/2.1.1/jquery.min.js">  </script>
-	       <script>			   
-	         $(document).ready(function(){
-	           var option;
-	           $("#selector").change(function(){
-				   $( "#selector option:selected" ).each(function() {
-				       option = $(this).val();
-				   });
-	             $.post("/option",{option: option}, function(data){
-	               if(data==='done')
-	                 {
-	                   console.log("sent success");
-	                 }
-	             });
-	           });
-	         });
-	       </script>
-	
+		<script type="text/javascript" src="static/main.js"></script>
 		<style type="text/css">
 	body {
 	  background-color: #333; color: #bbb; line-height: normal;
@@ -53,13 +38,23 @@
 	}
 		</style>
 		<!--[if lt IE 9]>
-			<script type="text/javascript">alert("Your browser does not support the canvas tag.");</script>
+			
 		<![endif]-->
 		
 	</head>
 	<body>
 		<div id="content">
-			<form action="" method="post" enctype="multipart/form-data">
+			<h1>Plataforma de control</h1>
+			<div id="welcome">
+				<div id="message">Bienvenido!</div>
+				<div id="counter">El tiempo de espera estimado es de <span></span> minutos</div>
+				<div id="waiting">Personas esperando: <span></span></div>
+				<div id="enter"><button>Entrar al cuarto de control</button></div>
+			</div>
+
+			
+			
+			<form id="game" action="" method="post" enctype="multipart/form-data">
 			         <fieldset>
 			            <label for="name">Elije el modo que quieres</label>
 			            <select name="selector" id="selector" onchange="" size="1">
@@ -71,7 +66,10 @@
 			            	
 			            </select>
 			         </fieldset>
-			      </form>
+					 <fieldset>Te quedan <span id="timer"></span> minutos<fieldset>
+					 <fieldset><button id="exit">Salir</button></fieldset>
+			  </form>
+			  
 		</div>
 	</body>
 </html>

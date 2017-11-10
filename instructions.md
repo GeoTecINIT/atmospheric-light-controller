@@ -16,6 +16,7 @@ Mongodb:
 Nodejs server: 
 	sudo service mongodb start
 	node /webserver/server.js (OSC-NODE connector)
+	DEBUG MODE: DEBUG=socket.io* node
 
 MAX audio controller:
 - Pendent
