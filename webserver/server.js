@@ -9,17 +9,17 @@ app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true })); 
 
 
-var maxUsers = 1;
-var numUsers = 0;
-var waitinglist = 0;
-var theUser; // DEPRE
-var theRoom = 'control room';
-var roomEmpty = true;
-var roomUser = {userid: '', socketid: ''};
+var maxUsers = 1; // Quantity of users allowed in the room (not in use, to be implemented)
+var numUsers = 0; // Quantity of users in the room
+var waitinglist = 0; // Quantity of users connected and waiting for enter the room
+var theUser; // the user session to save in db
+var theRoom = 'control room'; // the control room
+var roomEmpty = true; // if the room is empty, used to check before allow access
+var roomUser = {userid: '', socketid: ''}; // Who is in the room
 var maxTime = 20; //set maximum seconds of practice 60 = 1m
-var countdown = maxTime; 
-var countLive = false;
-var inter;
+var countdown = maxTime;  // the countdown that is send to 
+var countLive = false; // if it is counting
+var inter; // the count interval (unique for all the interface)
 
 //using node-osc library: 'npm install node-osc'
 //this will also install 'osc-min'
@@ -69,15 +69,23 @@ app.get('/',function(req, res) {
 app.post('/option',function(req, res) {
 	var option = req.body.option; //get option from form		
 		// save selected option in database
+	console.log('option received: '+option);
 		MongoClient.connect(MongoUrl, function(err, db) {
 		  assert.equal(null, err);
 		  var MongoCollection = db.collection('logs');
 		  var tempOption = {  user: req.session_state.username , option: option, timestamp: new Date(Date.now()) };
 		  MongoCollection.insert(tempOption, function(err, result) {
-		      if(err) { throw err; }
+              if (!err) {
+				  console.log(result);
+                  return res.send(result);
+              } else {
+				  console.log(err);
+				  return res.send(err);
+              }
 		    });
 			console.log(option+' saved in db.');
 		  db.close();
+
 		});
 		// sending the variable to Processing
 		var msg =  new osc.Message('/clientMsg')
@@ -105,6 +113,8 @@ io.on('connection', function (socket) {
 	socket.emit('your user', {user: theUser, socketid: socket.id});
 	socket.emit('check room', {status: roomEmpty, user: roomUser.userid});
 	waitinglist++;
+	socket.emit('waiting',{waiting: waitinglist});
+	socket.broadcast.emit('waiting',{waiting: waitinglist});
 	//when user enters the control room
 	  socket.on('enter user', function (data) {
 		waitinglist--;	  
@@ -113,6 +123,8 @@ io.on('connection', function (socket) {
 		roomUser.userid = data.user;
 		roomUser.socketid = socket.id;
 		socket.broadcast.emit('check room', {status: roomEmpty, user: roomUser.userid});
+		socket.emit('waiting',{waiting: waitinglist});
+		socket.broadcast.emit('waiting',{waiting: waitinglist});
 		console.log('User entered the room - User socket: '+roomUser.socketid+' - Current socket: '+socket.id)
 		countdown = maxTime;
 		if(countLive == true){
@@ -151,6 +163,8 @@ io.on('connection', function (socket) {
 	// when client is kicked or press exit button
     socket.on('empty room', function (data) {
 		waitinglist++;
+		socket.emit('waiting',{waiting: waitinglist});
+		socket.broadcast.emit('waiting',{waiting: waitinglist});
 		console.log('User left the room: '+theUser+' - Current Socket: '+roomUser.socketid+' - Current socket: '+socket.id)
 		if(socket.id == roomUser.socketid){
 		  numUsers--;
@@ -183,7 +197,7 @@ function countTime(duration, action, callback) {
             if (sChange === expected) {
                 expected++;
                 secsLeft = duration - sChange;
-   			 console.log(sChange+' - '+secsLeft+' - '+expected)
+   			 console.log('Seconds left in room :'+secsLeft)
    			 action();
             }
 
