@@ -6,8 +6,15 @@
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
+  "bugs": { "url" : "https://github.com/GeoTecINIT/atmospheric-light-controller/issues"
+	  , "email" : "portela@uji.es"
+	},
   "author": "Manuel Portela",
-  "license": "ISC",
+  "license": "MIT",
+  "repository" :
+    { "type" : "git"
+    , "url" : "https://github.com/GeoTecINIT/atmospheric-light-controller.git"
+    },
   "dependencies": {
     "body-parser": "^1.18.2",
     "client-sessions": "^0.8.0",
