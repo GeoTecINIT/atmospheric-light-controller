@@ -18,7 +18,9 @@ $(function() {
 	$message.html('<h2>Bienvenido!</h2> <p>Estamos cargando la plataforma...</p>');
 	$enter.hide();
 	$game.hide();
-  	$counter.hide();
+	$counter.children('span').html('00:00');
+	$('#poll-option').val('N');
+	$('#current-option span').html('N');
 	
 	socket.on('your user', (data)=>{
 		theUser = data.user;
@@ -30,6 +32,7 @@ $(function() {
 		roomEmpty = data.status;
 		currentUser = data.user;
 		theOption = data.option;
+		statusUpdate(data.status);
 		$('#current-option span').html(data.option);
 		$('#poll-option').val(data.option);
 		console.log('room data obtained. Room is:'+ roomEmpty+ ' and option is '+theOption);
@@ -49,7 +52,7 @@ $(function() {
 		reconnect++;
 		if(reconnect>3){
 			socket.close();
-			$('#content').html('<p>Por falta de conexión con el servidor se ha cerrado la sesión, vuelva a intentar más tarde.</p>');
+			$('#content').html('<h2>Ups!</h2><p>Por falta de conexión con el servidor se ha cerrado la sesión, vuelva a intentar más tarde.</p>');
 		}
 	  });
 	  
@@ -62,11 +65,11 @@ $(function() {
 	
 		// shows the timer
 		socket.on('timer', (data)=>{
-			if(inRoom == true) {
-				$('#timer').html(Math.floor((data.countdown/60) << 0)+':'+data.countdown);
-			}else{
+			//if(inRoom == true) {
+				//$('#timer').html(Math.floor((data.countdown/60) << 0)+':'+data.countdown);
+				//}else{
 				$counter.children('span').html(Math.floor((data.countdown/60) << 0)+':'+data.countdown);
-			}
+				//}
 			// 
 		});
 		
@@ -102,17 +105,18 @@ $(function() {
 			$('#poll input[name="poll-value"]:checked').attr('checked', false);
 			$('#poll option:selected').attr('selected', false);
 			$('#poll input[type="submit"]').attr('disabled', true).val('enviando...');
-	      $.post("/poll",{val: pollVal, emo: pollEmo, option: pollOpt}, function(data){
-				if(data.result.ok == 1){console.log('poll sent');}
+	  	      $.post("/poll",{val: pollVal, emo: pollEmo, option: pollOpt}, function(data){
+	  				if(data.result.ok == 1){console.log('poll sent');}
 				
-	      	})
-			.done(function(data) {
-				if(data.insertedCount == 1){console.log('poll writen');}
-				$('#poll input[type="submit"]').attr('disabled', false).val('Enviar');
-	 	 	  })
-	  	 	.fail(function(err) {
-	   			 console.log(err.statusText);
-	  		}); 
+	  	      	})
+	  			.done(function(data) {
+	  				if(data.insertedCount == 1){console.log('poll writen');}
+	  				$('#poll input[type="submit"]').attr('disabled', false).val('Enviar');
+	  	 	 	  })
+	  	  	 	.fail(function(err) {
+	  	   			 console.log(err.statusText);
+	  	  		}); 
+
 			return false;
 		});
 		
@@ -121,17 +125,15 @@ function verifyRoomState(roomEmpty, currentUser){
 	console.log('Room is: '+ roomEmpty);
 	if(roomEmpty == true){
 		$enter.show();
-		$counter.hide();
 		$game.hide();
-		$message.html('<p>Estamos Listos!</p> <p>Ahora podrás modificar el sistema desde el cuarto de control. Cuando estés listo presiona el botón.</p>');
+		$message.html('<h2>Bienvenido!</h2> <p>La plataforma está libre, podrás modificar el sistema desde el cuarto de control. Cuando estés listo presiona el botón.</p>');
 		console.log('We are ready');
 		enterRoom();
 	}
 	if(roomEmpty == false && currentUser != theUser){
 	  	$game.hide();
 	  	$enter.hide();
-		$message.html('<p>Vaya!</p> <p>En este momento hay alguien en el cuarto de control. Mientras puedes disfrutar del espacio a tu alrededor.</p>');
-		$counter.show();
+		$message.html('<h2>Vaya!</h2> <p>En este momento hay alguien en el cuarto de control. Mientras puedes disfrutar del espacio a tu alrededor.</p>');
 		setInterval(checkRoom(), 3000);
 	}
 }
@@ -149,7 +151,7 @@ function enterRoom(){
 				inRoom = true;
 				$enter.hide();
 				$game.show();
-				$message.html('<p>Ahora estas en el cuarto de control.</p> <p>Puedes seleccionar diferentes modos y el espacio cambiará. </p>');
+				$message.html('<h2>En el cuarto de control</h2> <p>Puedes seleccionar diferentes modos y el espacio cambiará. </p>');
 	
 				// if press exit button disconnects the user
 				$('#exit').click(function(){
@@ -177,4 +179,17 @@ function checkRoom(){
 	socket.emit('check room');
 	
 }
+function statusUpdate(status){
+	if(roomEmpty==true){
+		$('#status').html('LIBRE');
+		$('#welcome').css('background-image','url(http://'+location.hostname+':8080/static/img/statusbar.svg)');
+			$('#counter span').css('background-color', '#CCC').css('color','#4A4A4A');
+			
+	}else if(roomEmpty==false){
+		$('#status').html('OCUPADO');
+		$('#welcome').css('background-image','url(http://'+location.hostname+':8080/static/img/statusbarred.svg)');
+			$('#counter span').css('background-color', '#C02533').css('color','#FFF');
+			
+	}
+};
 });

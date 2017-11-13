@@ -1,0 +1,146 @@
+@import "bootstrap.min.css";
+@import "cover.css";
+
+body{
+	background-image: url(img/bg.png);
+	background-repeat: no-repeat;
+	background-position: center;
+	font-family: "Helvetica Neue", Helvetica, Sans-serif;
+}
+
+#message{
+	width: 100%;
+	/* Rectangle 2: */
+	/* Ahora podrás modific: */
+	font-family: Courier;
+	font-size: 12px;
+	color: #4CD964;
+
+	background-image: linear-gradient(-180deg, rgba(62, 62, 62, 0.69) 0%, rgba(33, 33, 33, 0.69) 37%, rgba(0,0,0,0.69) 100%);
+	border: 2px solid #000000;
+	box-shadow: 0 2px 4px 0 rgba(0,0,0,0.50);
+}
+
+/**** GAME BLOCK ****/
+#game-block{
+	/* Rectangle 4: */
+	background-image: linear-gradient(-179deg, #133956 0%, #113E71 100%);
+	border: none;
+	box-shadow: 0 2px 4px 0 rgba(0,0,0,0.50);
+	margin-bottom: 1em;
+	padding-bottom: 0;
+}
+#welcome{
+	padding: 1em 0;
+	/* Rectangle 3: */
+	/*background-image: linear-gradient(-180deg, #1E8336 0%, #1CB536 100%);
+	border-radius: 8px 8px 0 0 0 0 8px 8px 0 0 0 0;*/ 
+	background-image: url(img/statusbar.svg);
+	background-repeat: no-repeat;
+	background-position: center top;
+}
+#status{
+	font-family: Courier;
+}
+#counter, #waiting{
+	font-size: 0.7em;
+	color: #CCC;
+}
+#counter span, #waiting span{
+	display:inline-block;
+	padding: 0.3em 1em;
+	/* Rectangle 5 Copy 6: */
+	background: #CCCCCC;
+	border-radius: 18px;
+	color: #4A4A4A;
+}
+#enter {padding: 4em;}
+#enter .btn{
+	/* Rectangle 6: */
+	background: #173354;
+	border: 1px solid #4CD964;
+	border-radius: 12px;
+	/* Entrar al cuarto de: */
+	color: #4CD964;
+}
+#current-option{
+	/* Rectangle: */
+	background: #000000;
+	border-radius: 8px 8px 0 0;
+	margin: 2em 2em 0 2em;
+	padding: 0.5em 0.5em 0.3em;
+}
+#current-option p{
+	padding: 0;
+	margin-top: 1em;
+	font-size: 0.8em;
+	color: #ccc;
+}
+#current-option span{
+	/* Rectangle 5 Copy 5: */
+	padding: 0.5em 1em;
+	margin: 0 0.5em;
+	background-image: linear-gradient(0deg, #504F50 0%, #2C2B2C 100%);
+	border: 1px solid #333333;
+	border-radius: 19px;
+}
+
+
+/**** POLL BLOCK ****/
+#poll{
+	/* Rectangle 6: */
+	background-image: linear-gradient(0deg, #313131 0%, #000000 100%);
+	border: 1px solid #000000;
+	box-shadow: inset 0 1px 3px 0 #9B9B9B;
+	border-radius: 12px;
+	font-size: 0.7em;
+	padding: 1em;
+}
+#poll fieldset{
+	display:inline-block;
+	color: #ccc;
+	margin-right: 2em;
+}
+#poll input[type=submit]{
+	
+	/* Rectangle 7 Copy: */
+	background-image: linear-gradient(-180deg, #E6E6E6 0%, #C8C8C8 100%);
+	border: 1px solid #CDCDCD;
+	border-radius: 4px;
+	/* Enviar: */
+	font-family: HelveticaNeue-Medium;
+	font-size: 12px;
+	color: #4A4A4A;
+}
+#poll-value{display: inline-block;}
+#poll-value label{ margin: 0; height: 16px;}
+/* RATING STARS */
+.rating {
+    overflow: hidden;
+    display: inline-block;
+}
+
+.rating-input {
+    float: right;
+    width: 16px;
+    height: 16px;
+    padding: 0;
+    margin: 0 0 0 -16px;
+    opacity: 0;
+}
+
+.rating:hover .rating-star:hover,
+.rating:hover .rating-star:hover ~ .rating-star,
+.rating-input:checked ~ .rating-star {
+    background-position: 0 0;
+}
+
+.rating-star,
+.rating:hover .rating-star {
+    position: relative;
+    float: right;
+    display: block;
+    width: 16px;
+    height: 16px;
+    background: url('img/star.png') 0 -16px;
+}

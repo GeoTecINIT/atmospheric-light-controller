@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="901px" height="47px" viewBox="0 0 901 47" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+    <!-- Generator: Sketch 47.1 (45422) - http://www.bohemiancoding.com/sketch -->
+    <title>Rectangle 3</title>
+    <desc>Created with Sketch.</desc>
+    <defs>
+        <linearGradient x1="50%" y1="0%" x2="50%" y2="100%" id="linearGradient-1">
+            <stop stop-color="#1E8336" offset="0%"></stop>
+            <stop stop-color="#1CB536" offset="100%"></stop>
+        </linearGradient>
+    </defs>
+    <g id="Page-1" stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
+        <g id="Desktop-HD" transform="translate(-270.000000, -317.000000)" fill="url(#linearGradient-1)">
+            <path d="M600,317 L835,317 C946.751437,317 1058.50287,317 1170.25431,317 C1170.25431,317 1170.2543,320.333333 1170.25427,327 C953.518279,326.899165 843.433522,326.899165 840,327 C836.566478,327.100835 834.899811,328.767502 835,332 L835,356 L835,356 C835,360.418278 831.418278,364 827,364 L608,364 L608,364 C603.581722,364 600,360.418278 600,356 L600,332 C600,328.666667 598.412174,327 595.236522,327 C592.060871,327 483.648696,327 270,327 L270,317 L600,317 Z" id="Rectangle-3"></path>
+        </g>
+    </g>
+</svg>

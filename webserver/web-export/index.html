@@ -8,8 +8,7 @@
 		<script src="static/popper.min.js"></script>
 		<script src="static/bootstrap.min.js"></script>
 		<script type="text/javascript" src="static/main.js"></script>
-		 <link href="static/bootstrap.min.css" rel="stylesheet">
-		 <link href="static/cover.css" rel="stylesheet">
+		 <link href="static/main.css" rel="stylesheet">
 
 		<!--[if lt IE 9]>
 			
@@ -20,67 +19,80 @@
 	    <div class="site-wrapper">
 	    <div class="site-wrapper-inner">
 	    <div class="cover-container" id="content">
-			<header class="masthead clearfix">
-			            <div class="inner">
-			              <h3 class="masthead-brand">Plataforma de control</h3>
-			             
-			            </div>
-			          </header>
-					  
 			
-			<div id="welcome">
-				<h1 class="cover-heading">Bienvenido!</h1>
-				<p id="message"  class="lead"></p>
-				<p id="counter" class="lead">El tiempo de espera estimado es de <span></span> minutos</p>
-				<p id="waiting" class="lead">Personas esperando: <span></span></p>
+			<p id="message"  class="lead"></p>
+			
+			
+			<div id="game-block">
+				<div id="welcome" >
+					<div class="row">
+						<div id="waiting" class="col"><p>Personas esperando <span>0</span></p></div>
+						<div id="status" class="col"><p>LIBRE</p></div>
+						<div id="counter" class="col"><p>Tiempo estimado <span>00:00</span></p></div>
+					</div>
+				</div>
 				<div id="enter"><button class="btn btn-lg btn-secondary">Entrar al cuarto de control</button></div>
+				<div id="game">
+					<form  action="" method="post" enctype="multipart/form-data">
+					         <fieldset>
+					            <label for="selector">Elije el modo que quieres</label>
+					            <select name="selector" id="selector">
+					            	<option value="A">option1</option>
+					            	<option value="B">option2</option>
+					            	<option value="C">option3</option>
+					            	<option value="D">option4</option>
+					            	<option value="E">option5</option>
+			            	
+					            </select>
+					         </fieldset>
+							 <fieldset>Te quedan <span id="timer"></span> minutos<fieldset>
+							 <fieldset><button id="exit" class="btn btn-lg btn-secondary">Salir</button></fieldset>
+					  </form>
+				</div> 
+				<div id="current-option"><p>MODO <span></span> ACTIVADO</p></div>
 				
 			</div>
-			<div id="game">
-			<form  action="" method="post" enctype="multipart/form-data">
-			         <fieldset>
-			            <label for="selector">Elije el modo que quieres</label>
-			            <select name="selector" id="selector">
-			            	<option value="A">option1</option>
-			            	<option value="B">option2</option>
-			            	<option value="C">option3</option>
-			            	<option value="D">option4</option>
-			            	<option value="E">option5</option>
-			            	
-			            </select>
-			         </fieldset>
-					 <fieldset>Te quedan <span id="timer"></span> minutos<fieldset>
-					 <fieldset><button id="exit" class="btn btn-lg btn-secondary">Salir</button></fieldset>
-			  </form>
-			</div> 
   			<div id="poll">
-  				<h3>Cómo valoras la puesta actual?</h3>
-  				<p id="current-option">Ahora estas experimentando el modo <span></span></p>
+
   				<form action="poll-form" method="post" accept-charset="utf-8">
   					<fieldset>
-  						<label for="poll-value">¿Cómo valoras la experiencia?</label>
-  						<input type="radio" name="poll-value" value="1">  1</br>
-  						<input type="radio" name="poll-value" value="2">  2</br>
-  						<input type="radio" name="poll-value" value="3">  3</br>
-  						<input type="radio" name="poll-value" value="4">  4</br>
-  						<input type="radio" name="poll-value" value="5">  5</br>
+  						<label for="poll-value">¿Cómo valoras la experiencia actual?</label>
+						<div id="poll-value">
+						<span class="rating">
+						    <input type="radio" class="rating-input"
+						           id="rating-input-1-5" name="poll-value" value="1">
+						    <label for="rating-input-1-5" class="rating-star"></label>
+						    <input type="radio" class="rating-input"
+						           id="rating-input-1-4" name="poll-value" value="2">
+						    <label for="rating-input-1-4" class="rating-star"></label>
+						    <input type="radio" class="rating-input"
+						           id="rating-input-1-3" name="poll-value" value="3">
+						    <label for="rating-input-1-3" class="rating-star"></label>
+						    <input type="radio" class="rating-input"
+						           id="rating-input-1-2" name="poll-value" value="4">
+						    <label for="rating-input-1-2" class="rating-star"></label>
+						    <input type="radio" class="rating-input"
+						           id="rating-input-1-1" name="poll-value" value="5">
+						    <label for="rating-input-1-1" class="rating-star"></label>
+						</span>
+						</div>
   					</fieldset>
   					<fieldset>
-  						<label for="poll-emotion">Dinos qué sientes</label>
+  						<label for="poll-emotion">Cuál es tu sensación?</label>
   						<select name="poll-emotion" id="poll-emotion">
   							<option value="option1">option1</option>
   							<option value="option2">option2</option>
   						</select>
   					</fieldset>
 					<input type="hidden" name="poll-option" value="" id="poll-option">
-  					<p><input type="submit" class="btn btn-lg btn-secondary" value="Enviar"></p>
+  					<fieldset><input type="submit" class="btn btn-sm btn-secondary" value="Enviar"></fieldset>
   				</form>
 				
   			</div>
 			
 			<footer class="mastfoot">
 			            <div class="inner">
-			              <p>Cover template for <a href="https://getbootstrap.com/">Bootstrap</a>, by <a href="https://twitter.com/mdo">@mdo</a>.</p>
+			              <p>This project is part of <a href="http://geo-c.eu/">GEO-C Joint Doctorate in Geoinformatics: Enabling Open Cities</a> and developed by <a href="http://manuchis.net/">Manuel Portela</a>. GEO-C is funded by the European Commission within the Marie Skłodowska-Curie Actions, International Training Networks (ITN), European Joint Doctorates (EJD). The funding period is January 1, 2015 - December 31, 2018, Grant Agreement number 642332 — GEO-C — H2020-MSCA-ITN-2014.</p>
 			            </div>
 			          </footer>
 		</div>
