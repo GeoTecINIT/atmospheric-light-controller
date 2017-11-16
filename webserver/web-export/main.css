@@ -39,6 +39,9 @@ body{
 	background-repeat: no-repeat;
 	background-position: center top;
 }
+#welcome.full{
+	background-image: url(img/statusbarred.svg);
+}
 #status{
 	font-family: Courier;
 }
@@ -114,13 +117,21 @@ body{
 }
 #poll-value{display: inline-block;}
 #poll-value label{ margin: 0; height: 16px;}
-/* RATING STARS */
-.rating {
+/* RATING STARS + SELECTOR*/
+.rating, #selector {
     overflow: hidden;
     display: inline-block;
 }
+#selector{
+	/* Rectangle 8: */
+	background: rgba(0,0,0,0.10);
+	border: 1px solid #262626;
+	box-shadow: inset 0 1px 3px 0 rgba(0,0,0,0.50);
+	border-radius: 19px;
+	padding: 1em;
+}
 
-.rating-input {
+.rating-input, .selector-input {
     float: right;
     width: 16px;
     height: 16px;
@@ -143,4 +154,52 @@ body{
     width: 16px;
     height: 16px;
     background: url('img/star.png') 0 -16px;
+}
+.selector{
+    position: relative;
+    float: right;
+    display: block;
+	padding: 0.5em 1.5em;
+	margin: 0.5em;
+	background: black;
+	/* Rectangle 5 Copy 4: */
+	background: #CCCCCC;
+	box-shadow: 0 2px 4px 0 rgba(0,0,0,0.50), inset 0 1px 3px 0 #FFFFFF;
+	border-radius: 19px;
+	color:#4A4A4A;
+}
+.selector.selected{
+	/* Rectangle 5 Copy 3: */
+	background: #4A4A4A;
+	box-shadow: 0 2px 4px 0 rgba(95,95,95,0.50), inset 0 1px 3px 0 #000000;
+	border-radius: 19px;
+	color: #ccc;
+}
+#exit{
+	/* Rectangle 7 Copy: */
+background-image: linear-gradient(-180deg, #C02533 0%, #830417 100%);
+border: 1px solid #700101;
+border-radius: 4px;
+color:#ccc;
+padding: 0.5em 1em;
+margin-top: 1em; 
+}
+#game p{
+	padding: 1em 4em;
+	font-size: 0.8em;
+	color: #ccc;
+}
+
+/* ** MEDIA (Iphone) ** */
+@media (max-width: 40em) {
+	#welcome{
+		background-image: url(img/statusbar_min.svg);
+	}
+	#welcome.full{
+		background-image: url(img/statusbarred_min.svg);
+	}
+	.selector{
+		padding: 0.5em 1.3em;
+		margin: 0.2em;
+	}
 }

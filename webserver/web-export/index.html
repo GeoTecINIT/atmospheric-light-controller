@@ -2,6 +2,7 @@
 	<head>
 		<meta http-equiv="content-type" content="text/html; charset=utf-8" />
 		<title>Atmospheric Light Controller</title>
+		<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
 		<link rel="icon"  type="image/x-icon" href="data:image/x-icon;base64,AAABAAEAEBAQAAEABAAoAQAAFgAAACgAAAAQAAAAIAAAAAEABAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAADAQAAVzABAEAjBQAaDwYAWjUGAGE6CQBrQQ0ATS8PAFhAJwBUQC8AbFI6AHVXPACBZk4A4NrWAPb19QAAAAAAAMmZmZmZmgAJIwAAAAAAcMIjPjA+PjAKpxIuMDMzMAm0Ii4zMzMACaIiLt3dMAAJtyIuIzPQAAm0Un5yM+IzKLRkfncy4iIotRF+dyLkIiq0QX53F+EiGrQUTkd34iIatEVu7u5iIVrBVVRBRFRVbAtGZGZla2uwAMu7u7u8vADAAwAAgAEAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAIABAADAAwAA" />
 		<script type="text/javascript" src="/socket.io/socket.io.js"></script>
 		<script src="static/jquery-3.2.1.min.js"></script>
@@ -33,20 +34,17 @@
 				</div>
 				<div id="enter"><button class="btn btn-lg btn-secondary">Entrar al cuarto de control</button></div>
 				<div id="game">
+		            <p>Elije el modo que quieres que sea proyectado en el ambiente. Notarás que las combinaciones de luz cambian según tu selección y los sonidos del ambiente. Tú y otros jugadores podrán valorar la experiencia en la encuesta que se encuenta debajo.</p>
+					
 					<form  action="" method="post" enctype="multipart/form-data">
-					         <fieldset>
-					            <label for="selector">Elije el modo que quieres</label>
-					            <select name="selector" id="selector">
-					            	<option value="A">option1</option>
-					            	<option value="B">option2</option>
-					            	<option value="C">option3</option>
-					            	<option value="D">option4</option>
-					            	<option value="E">option5</option>
-			            	
-					            </select>
+					         <fieldset id="selector">
+								 <input type="radio" name="selector" value="E" class="selector-input" id="selectorE"><label for="selectorE" class="selector">E</label>
+								 <input type="radio" name="selector" value="D" class="selector-input" id="selectorD"><label for="selectorD" class="selector">D</label>
+								 <input type="radio" name="selector" value="C" class="selector-input" id="selectorC"><label for="selectorC" class="selector">C</label>
+								 <input type="radio" name="selector" value="B" class="selector-input" id="selectorB"><label for="selectorB" class="selector">B</label>
+								<input type="radio" name="selector" value="A" class="selector-input" id="selectorA"><label for="selectorA" class="selector">A</label>
 					         </fieldset>
-							 <fieldset>Te quedan <span id="timer"></span> minutos<fieldset>
-							 <fieldset><button id="exit" class="btn btn-lg btn-secondary">Salir</button></fieldset>
+							 <fieldset><button id="exit" class="btn btn-secondary">Salir</button></fieldset>
 					  </form>
 				</div> 
 				<div id="current-option"><p>MODO <span></span> ACTIVADO</p></div>

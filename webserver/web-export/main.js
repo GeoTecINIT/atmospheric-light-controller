@@ -68,35 +68,37 @@ $(function() {
 			//if(inRoom == true) {
 				//$('#timer').html(Math.floor((data.countdown/60) << 0)+':'+data.countdown);
 				//}else{
-				$counter.children('span').html(Math.floor((data.countdown/60) << 0)+':'+data.countdown);
+			$counter.children('p').children('span').html(Math.floor((data.countdown/60) << 0)+':'+data.countdown);
 				//}
 			// 
 		});
 		
 		// shows waiting list
 		socket.on('waiting', (data)=>{
-				$waiting.children('span').html(data.waiting);
+				$waiting.children('p').children('span').html(data.waiting);
 		});
 		
 		
 		// selector functionality
-   	  	$("#selector").change(function(){
-			$("#selector").attr('disabled', true);
-         	option = $('#selector option:selected').val();
-			$('#current-option span').html(option);
-			$('#poll-option').val(option);
-		      $.post("/option",{option: option}, function(data){
-					if(data.result.ok == 1){console.log('data sent');}
-		      	})
-				.done(function(data) {
-					if(data.insertedCount == 1){console.log('data writen');}
-					$("#selector").attr('disabled', false);
-		 	 	  })
-		  	 	.fail(function(err) {
-		   			 console.log(err);
-		  		});
-    	});
-		
+	   $('.selector-input').change(function(){
+		   option = $(this).val();
+		   var $label = $("label[for='"+$(this).attr('id')+"']");
+		   $('.selector').removeClass('selected');
+		   $label.addClass('selected');
+		   $('#current-option span').html(option);
+		   $('#poll-option').val(option);
+	      $.post("/option",{option: option}, function(data){
+				if(data.result.ok == 1){console.log('data sent');}
+	      	})
+			.done(function(data) {
+				if(data.insertedCount == 1){console.log('data writen');}
+				$("#selector").attr('disabled', false);
+	 	 	  })
+	  	 	.fail(function(err) {
+	   			 console.log(err);
+	  		});
+	   });
+	   
 		//poll functionality
 		$('#poll').submit(function(){
 			var pollVal = $('#poll input[name="poll-value"]:checked').val();
@@ -133,7 +135,7 @@ function verifyRoomState(roomEmpty, currentUser){
 	if(roomEmpty == false && currentUser != theUser){
 	  	$game.hide();
 	  	$enter.hide();
-		$message.html('<h2>Vaya!</h2> <p>En este momento hay alguien en el cuarto de control. Mientras puedes disfrutar del espacio a tu alrededor.</p>');
+		$message.html('<h2>Vaya!</h2> <p>En este momento hay alguien en el cuarto de control. Mientras puedes disfrutar del espacio a tu alrededor. Aprovecha a valorar la experiencia actual en la encuesta que encontrarás en el pie de esta página.</p>');
 		setInterval(checkRoom(), 3000);
 	}
 }
@@ -144,7 +146,8 @@ function enterRoom(){
 	$enterbtn.on('click',function(){
 			$enterbtn.off('click');  // prevents double click :D 
 			console.log('Start your engines...');
-			$('#selector').val(theOption);
+			$('selector-input[id="selector'+theOption+'"]').prop("checked", true);
+			$('#selector label[for="selector'+theOption+'"]')
 			//if user is not in the room
 				socket.emit('enter user', { txt: 'User entered the room', user: theUser });		
 				roomEmpty = false; 
@@ -163,7 +166,6 @@ function enterRoom(){
 }
 
 function exitRoom(){
-	//$counter.show();
 	$game.hide();
 	roomEmpty = true;
 	inRoom = false;
@@ -182,12 +184,12 @@ function checkRoom(){
 function statusUpdate(status){
 	if(roomEmpty==true){
 		$('#status').html('LIBRE');
-		$('#welcome').css('background-image','url(http://'+location.hostname+':8080/static/img/statusbar.svg)');
-			$('#counter span').css('background-color', '#CCC').css('color','#4A4A4A');
+		$('#welcome').removeClass('full');
+		$('#counter span').html('00:00').css('background-color', '#CCC').css('color','#4A4A4A');
 			
 	}else if(roomEmpty==false){
 		$('#status').html('OCUPADO');
-		$('#welcome').css('background-image','url(http://'+location.hostname+':8080/static/img/statusbarred.svg)');
+		$('#welcome').addClass('full');
 			$('#counter span').css('background-color', '#C02533').css('color','#FFF');
 			
 	}
