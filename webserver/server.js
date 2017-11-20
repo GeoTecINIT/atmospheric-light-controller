@@ -4,6 +4,7 @@ var clientSessions = require("client-sessions");
 var crypto = require('crypto');
 var server = require('http').Server(app);
 var io = require('socket.io')(server);
+var schedule = require('node-schedule');
 var bodyParser = require('body-parser');
 app.use(bodyParser.json()); 
 app.use(bodyParser.urlencoded({ extended: true })); 
@@ -21,7 +22,9 @@ var countdown = maxTime;  // the countdown that is send to
 var countLive = false; // if it is counting
 var inter; // the count interval (unique for all the interface)
 var theOption; //the current option running
-
+var energySaver = 0; // Energy Saving mode (between around 23:30 and 17hs) if 1 thet system will be off. 
+ 
+// *** NODE-OSC Connection ***
 //using node-osc library: 'npm install node-osc'
 //this will also install 'osc-min'
 var osc = require('node-osc');
@@ -30,6 +33,7 @@ var oscServer = new osc.Server(3334, '127.0.0.1');
 //sending OSC msgs to a client
 var oscClient = new osc.Client('127.0.0.1', 3333);
 
+// *** SESSIONS ***
 // Initiate sessions
 app.use(clientSessions({
   secret: 'oiUTERDLdTVuru3BRFaPt9rLZ' // CHANGE THIS!
@@ -45,8 +49,41 @@ MongoClient.connect(MongoUrl, function(err, db) {
   db.close();
 });
 
+//  ***  Energy Saver mode settings (node-schedule)*** 
+// START
+var sRule = new schedule.RecurrenceRule();
+sRule.dayOfWeek = [0, new schedule.Range(0, 5)]; // 0 (MONDAY) to 5(SATURDAY)
+sRule.hour = 17; //17hs
+sRule.minute = 0;
+ 
+var sES = schedule.scheduleJob(sRule, function(){
+ 	var time = new Date(Date.now());
+  	energySaver = 0;
+  	var tMsg = 'Energy Saver is off at '+ time;
+ 	saveDb('energysaver', {status: energySaver, timestamp: time}, tMsg);
+});
 
+// END
+var fRule = new schedule.RecurrenceRule();
+fRule.dayOfWeek = [0, new schedule.Range(0, 5)]; // 0 (MONDAY) to 5(SATURDAY)
+fRule.hour = 16; //23:30hs
+fRule.minute = 11;
+ 
+var fES = schedule.scheduleJob(fRule, function(){
+	 var time = new Date(Date.now());
+	 energySaver = 1;
+ 	 var tMsg = 'Energy Saver is on at '+ new Date(Date.now());
+  	saveDb('energysaver', {status: energySaver, timestamp: time}, tMsg);
+	
+		theOption = 'X';
+		// sending the variable to Processing
+		var msg =  new osc.Message('/clientMsg')
+ 		msg.append(theOption)
+ 		oscClient.send(msg)
+	
+});
 
+// *** App Route settings *** //
 app.use('/static', express.static(__dirname + '/web-export'));
 app.get('/',function(req, res) {	
 		
@@ -139,6 +176,7 @@ io.on('connection', function (socket) {
 	// when connected sends first user information and room state
 	socket.emit('your user', {user: theUser, socketid: socket.id});
 	socket.emit('check room', {status: roomEmpty, user: roomUser.userid, option: theOption});
+	socket.emit('energy saver',{energySaver: energySaver});
 	waitinglist++;
 	socket.emit('waiting',{waiting: waitinglist});
 	socket.broadcast.emit('waiting',{waiting: waitinglist});
@@ -149,6 +187,7 @@ io.on('connection', function (socket) {
 		roomEmpty = false;
 		roomUser.userid = data.user;
 		roomUser.socketid = socket.id;
+		socket.emit('energy saver',{energySaver: energySaver});
 		socket.emit('check room', {status: roomEmpty, user: roomUser.userid, option: theOption});
 		socket.broadcast.emit('check room', {status: roomEmpty, user: roomUser.userid, option: theOption});
 		socket.emit('waiting',{waiting: waitinglist});
@@ -236,3 +275,22 @@ function countTime(duration, action, callback) {
             }
         }, 100);
  }
+ 
+ function saveDb(collection, options, msg){
+	MongoClient.connect(MongoUrl, function(err, db) {
+	  assert.equal(null, err);
+	  var MongoCollection = db.collection(collection);
+	  	  MongoCollection.insert(options, function(err, result) {
+           if (!err) {
+			  console.log(result);
+               return result;
+           } else {
+			  console.log(err);
+			  return err;
+           }
+	    });
+		console.log(msg+' saved in db.');
+	  db.close();
+
+	});	
+ };

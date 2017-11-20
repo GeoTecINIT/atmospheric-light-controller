@@ -55,6 +55,13 @@ $(function() {
 			$('#content').html('<h2>Ups!</h2><p>Por falta de conexión con el servidor se ha cerrado la sesión, vuelva a intentar más tarde.</p>');
 		}
 	  });
+	  socket.on('energy saver', function (data) {
+		if(data.energySaver == 1){
+			socket.close();
+			$('#content').html('<h2>Estamos en modo reposo para cuidar nuestro planeta!</h2><p> El horario de funcionamiento es de 17 a 23.30 horas. </p><p>Vuelve a jugar mas tarde ;)</p>');
+		}
+	  });
+	
 	  
 		// kicks the user if receives message.
 		socket.on('kick user', function(){

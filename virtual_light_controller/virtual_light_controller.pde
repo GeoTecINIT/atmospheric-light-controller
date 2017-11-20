@@ -84,6 +84,9 @@ void draw() {
             cm = (a*i)%255;
           bulb = new Bulb(cm,cm,cm, 1, tempXpos, tempYpos, 15); }
           break;
+          case 'X':
+            bulb = new Bulb(0,0,0, 0, tempXpos, tempYpos, 15); 
+          break;
          default:
            int dc = int(map(rms.analyze(), 0, 0.5, 1, 255)); // Modifies the color with sound amplitude
            bulb = new Bulb(dc,255-dc,255, 1, tempXpos, tempYpos, 15);
@@ -133,6 +136,9 @@ void keyPressed() {
   }else if (key == 'e' || key == 'E') {
     print("Key pressed: option E\n");
     chosenOption = 'E';
+  }else if (key == 'x' || key == 'X') {
+    print("Key pressed: option X\n");
+    chosenOption = 'X';
   }else if (key == 'n' || key == 'N') {
     print("option set to empty\n");
     chosenOption = '\n';
