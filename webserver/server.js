@@ -46,6 +46,16 @@ var MongoUrl = 'mongodb://localhost:27017/atmospheric-light-controller';
 MongoClient.connect(MongoUrl, function(err, db) {
   assert.equal(null, err);
   console.log("Connected successfully to mongodb server");
+  db.createCollection("vals", function(err, res) {
+      if (err) throw err;
+    });
+    db.createCollection("logs", function(err, res) {
+        if (err) throw err;
+      });
+	db.createCollection("energysaver", function(err, res) {
+	   if (err) throw err;
+	  });
+
   db.close();
 });
 
@@ -138,11 +148,12 @@ app.post('/poll', function(req, res){
 	var option = req.body.option;
 	console.log('Valoration received is  '+pollVal + ' with '+pollEmo+' emotion');
 	
+	
 	MongoClient.connect(MongoUrl, function(err, db) {
 	  assert.equal(null, err);
-	  var MongoCollection = db.collection('vals');
-	  var tempOption = {  user: req.session_state.username, option: option, val: pollVal, emo: pollEmo, timestamp: new Date(Date.now()) };
-	  MongoCollection.insert(tempOption, function(err, result) {
+	  	var MongoCollection = db.collection('vals');
+    	var tempOption = {  user: req.session_state.username, option: option, val: pollVal, emo: pollEmo, timestamp: new Date(Date.now()) };
+		MongoCollection.insert(tempOption, function(err, result) {
           if (!err) {
 			  console.log(result);
               return res.send(result);
@@ -277,10 +288,11 @@ function countTime(duration, action, callback) {
  }
  
  function saveDb(collection, options, msg){
+	 
 	MongoClient.connect(MongoUrl, function(err, db) {
 	  assert.equal(null, err);
 	  var MongoCollection = db.collection(collection);
-	  	  MongoCollection.insert(options, function(err, result) {
+	  MongoCollection.insert(options, function(err, result) {
            if (!err) {
 			  console.log(result);
                return result;
@@ -291,6 +303,5 @@ function countTime(duration, action, callback) {
 	    });
 		console.log(msg+' saved in db.');
 	  db.close();
-
 	});	
  };
