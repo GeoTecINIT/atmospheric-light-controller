@@ -46,7 +46,7 @@ void setup(){
 int BULB_NB = 40; // Quantity of bulbs
 Bulb bulb; 
 void draw() { 
-    a++; if(a>255){a=0;}
+    a++; if(a>255){a=0;} // A is going trough color spectrum
     
      
          switch(chosenOption){
@@ -128,7 +128,6 @@ void draw() {
           // *** CASE X: LIGHTS TURNED OFF ***
           case 'X':
             for (int i = 0; i < BULB_NB; i++){ //iterate through the bulbs
-                    
                         //defining the position of bulbs in graph
                     float tempYpos = i*20+20;
                     float tempXpos = 80;
