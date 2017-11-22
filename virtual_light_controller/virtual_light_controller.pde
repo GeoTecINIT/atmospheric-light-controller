@@ -14,6 +14,7 @@ char receivedString;
 char chosenOption; 
 char chosenSpeed; 
 int a = 0;
+int cm;
 void setup(){
   size(200, 420); 
   background(0);
@@ -47,56 +48,117 @@ Bulb bulb;
 void draw() { 
     a++; if(a>255){a=0;}
     
-      //iterate through the bulbs
-     for (int i = 0; i < BULB_NB; i++){
-
-       int cm = millis() % 255;
-       //defining the position of bulbs in graph
-        float tempYpos = i*20+20;
-        float tempXpos = 80;
-        if(i>19){ //change position values to draw two lines
-          tempYpos = (i-20)*20+20;
-          tempXpos = 120;
-        }
+     
          switch(chosenOption){
-        case 'A':
-          if(i% 2 == 0){
-            cm = (millis() + 2500) % 255; 
-            bulb = new Bulb(cm,cm,cm, 1, tempXpos, tempYpos, 15); }
-           else{bulb = new Bulb(cm,cm,cm, 1, tempXpos, tempYpos, 15); }
+            // *** CASE A : Alternate strobo between lights  ***
+        case 'A': 
+          for (int i = 0; i < BULB_NB; i++){ //iterate through the bulbs
+            
+                //defining the position of bulbs in graph
+            float tempYpos = i*20+20;
+            float tempXpos = 80;
+            if(i>19){ //change position values to draw two lines
+              tempYpos = (i-20)*20+20;
+              tempXpos = 120;
+            }
+            
+            if(i% 2 == 0){
+              cm = (millis() + 2500) % 255; 
+              bulb = new Bulb(cm,cm,cm, 1, tempXpos, tempYpos, 15); }
+             else{
+             cm = millis() % 255;
+             bulb = new Bulb(cm,cm,cm, 1, tempXpos, tempYpos, 15); }
+             bulb.display();
+          }
           break;
+           // *** CASE B  //  slow progression ***
          case 'B':
-           cm = (a+i*39)%255;
-           //println(a,i,cm);
-           bulb = new Bulb(cm,cm,cm, 1, tempXpos, tempYpos, 15);
+             for (int i = 0; i < BULB_NB; i++){ //iterate through the bulbs
+                
+                    //defining the position of bulbs in graph
+                float tempYpos = i*20+20;
+                float tempXpos = 80;
+                if(i>19){ //change position values to draw two lines
+                  tempYpos = (i-20)*20+20;
+                  tempXpos = 120;
+                }
+               cm = (a+i*39)%255;
+               bulb = new Bulb(cm,cm,cm, 1, tempXpos, tempYpos, 15);
+               bulb.display();
+             }
           break;
+          // *** CASE C : Testing entire chain progression ***
           case 'C':
-           cm = (a*i)%255;
-           println(a,i,cm, frameRate);
-           bulb = new Bulb(cm,cm,cm, 1, tempXpos, tempYpos, 15);
+              for (int i = 0; i < BULB_NB; i++){ //iterate through the bulbs
+                  
+                      //defining the position of bulbs in graph
+                  float tempYpos = i*20+20;
+                  float tempXpos = 80;
+                  if(i>19){ //change position values to draw two lines
+                    tempYpos = (i-20)*20+20;
+                    tempXpos = 120;
+                  }
+                  cm = int(map(i, 0, 40, 0, 255))%255;
+                 //cm = (a*i)%255;
+                 println(a,i,cm, frameRate);
+                 bulb = new Bulb(cm,cm,cm, 1, tempXpos, tempYpos, 15);
+                 bulb.display();
+              }
           break;
+          // *** CASE D : Parallel chain progression  ***
           case 'D':
-          println(frameRate);
-          if(i >= BULB_NB/2){
-            cm = (a*(i-BULB_NB/2))%255; 
-            bulb = new Bulb(cm,cm,cm, 1, tempXpos, tempYpos, 15); }
-           else{ 
-            cm = (a*i)%255;
-          bulb = new Bulb(cm,cm,cm, 1, tempXpos, tempYpos, 15); }
+              for (int i = 0; i < BULB_NB; i++){ //iterate through the bulbs
+                      //defining the position of bulbs in graph
+                  float tempYpos = i*20+20;
+                  float tempXpos = 80;
+                  if(i>19){ //change position values to draw two lines
+                    tempYpos = (i-20)*20+20;
+                    tempXpos = 120;
+                  }
+                println(frameRate);
+                if(i >= BULB_NB/2){
+                  cm = (a*(i-BULB_NB/2))%255; 
+                  bulb = new Bulb(cm,cm,cm, 1, tempXpos, tempYpos, 15); }
+                 else{ 
+                  cm = (a*i)%255;
+                bulb = new Bulb(cm,cm,cm, 1, tempXpos, tempYpos, 15); }
+                bulb.display();
+              }
           break;
+          // *** CASE X: LIGHTS TURNED OFF ***
           case 'X':
-            bulb = new Bulb(0,0,0, 0, tempXpos, tempYpos, 15); 
+            for (int i = 0; i < BULB_NB; i++){ //iterate through the bulbs
+                    
+                        //defining the position of bulbs in graph
+                    float tempYpos = i*20+20;
+                    float tempXpos = 80;
+                    if(i>19){ //change position values to draw two lines
+                      tempYpos = (i-20)*20+20;
+                      tempXpos = 120;
+                    }
+              bulb = new Bulb(0,0,0, 0, tempXpos, tempYpos, 15); 
+            }
           break;
+          // *** CASE DEFAULT: Sound Amplitude response ***
          default:
+          for (int i = 0; i < BULB_NB; i++){ //iterate through the bulbs
+                    
+                        //defining the position of bulbs in graph
+                    float tempYpos = i*20+20;
+                    float tempXpos = 80;
+                    if(i>19){ //change position values to draw two lines
+                      tempYpos = (i-20)*20+20;
+                      tempXpos = 120;
+                    }
            int dc = int(map(rms.analyze(), 0, 0.5, 1, 255)); // Modifies the color with sound amplitude
            bulb = new Bulb(dc,255-dc,255, 1, tempXpos, tempYpos, 15);
+           bulb.display();
            println(dc);
+          }
           break;
        }
-        bulb.display();
+       
     }
-
-}
 
 // definir bulb
 class Bulb{
