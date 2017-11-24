@@ -46,15 +46,18 @@ var MongoUrl = 'mongodb://localhost:27017/atmospheric-light-controller';
 MongoClient.connect(MongoUrl, function(err, db) {
   assert.equal(null, err);
   console.log("Connected successfully to mongodb server");
-  db.createCollection("vals", function(err, res) {
-      if (err) throw err;
-    });
-    db.createCollection("logs", function(err, res) {
-        if (err) throw err;
-      });
-	db.createCollection("energysaver", function(err, res) {
-	   if (err) throw err;
-	  });
+        
+	  db.createCollection("vals", function(err, res) {
+	      if (err) console.log(res.errmsg);
+	    });
+	  db.createCollection("logs", function(err, res) {
+	        if (err) console.log(res.errmsg);
+	     });
+		db.createCollection("energysaver", function(err, res) {
+		  if (err) console.log(res.errmsg);
+		  });
+		  
+  
 
   db.close();
 });
