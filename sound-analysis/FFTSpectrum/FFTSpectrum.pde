@@ -39,14 +39,16 @@ public void setup() {
   
   //Load and play a soundfile and loop it. This has to be called 
   // before the FFT is created.
-  in = new AudioIn(this, 0);
-  in.start();
-  //sample = new SoundFile(this, "beat.aiff");
-  //sample.loop();
+  // ** WITH AUDIO INPUTS **
+  //in = new AudioIn(this, 0);
+  //in.start();
+  // ** WITH SAMPLES **
+  sample = new SoundFile(this, "bus2_cut.aiff");
+  sample.loop();
 
   // Create and patch the FFT analyzer
   fft = new FFT(this, bands);
-  fft.input(in);
+  fft.input(sample); // <--- Change for sample or in
 }      
 
 public void draw() {
@@ -61,6 +63,25 @@ public void draw() {
     // smooth the FFT data by smoothing factor
     sum[i] += (fft.spectrum[i] - sum[i]) * smooth_factor;
     
+    // Identifiying objects
+    if(i > 10 && i < 15){ // PEOPLE TALKING (sometimes can't sepate other noise)
+      if(sum[i]*height*scale > 3 && sum[i]*height*scale < 10) println("people talking");//println(i, sum[i]*height*scale);
+    }
+    if(i > 0 && i < 5){ // BUS ENGINE
+      if(sum[i]*height*scale > 25 && sum[i]*height*scale < 30) {println("bus engine");}
+      else if(sum[i]*height*scale > 30 && sum[i]*height*scale < 40) {println("bus engine");}
+      else if (sum[i]*height*scale > 40){println("TOO loud bus engine"); }
+    }
+    if(i > 30 && i < 35){ // TRAM BIP
+      if(sum[i]*height*scale > 3 && sum[i]*height*scale < 10) println("TRAM BIP");//println(i, sum[i]*height*scale);
+    }
+    if(i > 145 && i < 155){ // BUs STOPping
+      if(sum[i]*height*scale > 10 && sum[i]*height*scale < 15) println("STOPPING"); 
+      //println(i, sum[i]*height*scale);
+    }
+    
+    
+    // Defining colors of spectrum
     if(i < 30){ // split each of the bands
       if(fft.spectrum[i] > 0.3){ fill(0,0,0); }
     }if(i > 30 && i < 80){
