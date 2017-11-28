@@ -5,9 +5,25 @@ import processing.sound.*;
 import oscP5.*;
 import netP5.*;
 
-AudioIn in;
+// Audio imports and Variables
+FFT fft1, fft2;
+AudioDevice device;
+AudioIn in1, in2;
+HighPass highPass;
 Amplitude rms;
+// Declare a scaling factor
+int scale=5;
+// Define how many FFT bands we want
+int bands = 256;
+// declare a drawing variable for calculating rect width
+float r_width;
+// Create a smoothing vector
+float[] sum1 = new float[bands];
+float[] sum2 = new float[bands];
+// Create a smoothing factor
+float smooth_factor = 0.2;
 
+// Lights and server variables
 OscP5 oscP5;
 NetAddress nodejsServer;
 char receivedString;
@@ -18,11 +34,13 @@ int cm;
 int i;
 float tempYpos;
 float tempXpos;
+
 void setup(){
   size(200, 420); 
   background(0);
   noStroke();
-   frameRate(30);
+  frameRate(30);
+  
   /* start oscP5, listening for incoming messages at port 12000 */
   oscP5 = new OscP5(this,3333);
   
@@ -35,22 +53,70 @@ void setup(){
    */
    nodejsServer = new NetAddress("127.0.0.1",3334);
    
-  //frameRate(2);
   // Create the Input stream
-  in = new AudioIn(this, 0);
-  in.start();
- // in.play();
+  device = new AudioDevice(this, 44000, bands);
+  // Calculate the width of the rects depending on how many bands we have
+  r_width = width/float(bands);
+  
+  //Load and play a soundfile and loop it. This has to be called 
+  // before the FFT is created.
+  // ** WITH AUDIO INPUTS **
+  in1 = new AudioIn(this, 0);
+  in1.start();
+  in2 = new AudioIn(this, 1);
+  in2.start();
+  
+    // FILTERS **
+  highPass = new HighPass(this);
+  highPass.process(in1, 100);
+  
+    // Create and patch the FFT analyzer
+  fft1 = new FFT(this, bands);
+  fft1.input(highPass); // <--- Change for sample or in (or filtered band)
+  //fft2 = new FFT(this, bands);
+  //fft2.input(in2);
+
+  
   // create a new Amplitude analyzer
     rms = new Amplitude(this);
     // Patch the input to an volume analyzer
-    rms.input(in);
+    rms.input(in2);
+    
 }
 int numFrames = 255;  // The number of frames in the animation
 int currentFrame = 0;
 int BULB_NB = 40; // Quantity of bulbs
 Bulb bulb; 
 void draw() { 
-    background(0);
+    background(125,255,125);
+    
+    // AUDIO ANALYSIS
+    fft1.analyze();
+    //fft2.analyze();
+    for (int i = 0; i < bands; i++) {
+    // smooth the FFT data by smoothing factor
+    sum1[i] += (fft1.spectrum[i] - sum1[i]) * smooth_factor;
+    //sum2[i] += (fft2.spectrum[i] - sum2[i]) * smooth_factor;
+    
+    // Identifiying objects
+    if(i > 10 && i < 15){ // PEOPLE TALKING (sometimes can't sepate other noise)
+      if(sum1[i]*height*scale > 3 && sum1[i]*height*scale < 10) println("people talking");//println(i, sum[i]*height*scale);
+    }
+    if(i > 0 && i < 5){ // BUS ENGINE
+      if(sum1[i]*height*scale > 25 && sum1[i]*height*scale < 30) {println("bus engine");}
+      else if(sum1[i]*height*scale > 30 && sum1[i]*height*scale < 40) {println("bus engine");}
+      else if (sum1[i]*height*scale > 40){println("TOO loud bus engine"); }
+    }
+    if(i > 30 && i < 35){ // TRAM BIP
+      if(sum1[i]*height*scale > 3 && sum1[i]*height*scale < 10) println("TRAM BIP");//println(i, sum[i]*height*scale);
+    }
+    if(i > 145 && i < 155){ // BUs STOPping
+      if(sum1[i]*height*scale > 10 && sum1[i]*height*scale < 15) println("STOPPING"); 
+      //println(i, sum[i]*height*scale);
+    }
+    }
+    
+    
     a++; if(a>255){a=0;} // A is going trough color spectrum
     currentFrame = (currentFrame+1) % numFrames;  // Use % to cycle through frames
     int offset = 0;
