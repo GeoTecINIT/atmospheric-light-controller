@@ -90,7 +90,10 @@ Bulb bulb;
 void draw() { 
     background(125,255,125);
     
+    // ****
     // AUDIO ANALYSIS
+    // ****
+    
     fft1.analyze();
     //fft2.analyze();
     for (int i = 0; i < bands; i++) {
@@ -116,6 +119,9 @@ void draw() {
     }
     }
     
+     // ****
+    // LIGHT BEHAVIOUR
+    // ****
     
     a++; if(a>255){a=0;} // A is going trough color spectrum
     currentFrame = (currentFrame+1) % numFrames;  // Use % to cycle through frames
