@@ -262,7 +262,7 @@ void draw() {
            int dc = int(map(rms.analyze(), 0, 0.5, 0, 255)); // Modifies the color with sound amplitude
            bulb = new Bulb(dc,255-dc,255, 1, tempXpos, tempYpos, 15);
            bulb.display();
-           println(dc);
+           dmxOutput.set(i,dc);
            
            
           }
