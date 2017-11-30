@@ -1,20 +1,26 @@
 // this sketch draws the bulb and change color when sound amplitud changes
-// Requires sound library
 
-import processing.sound.*;
+//import processing.sound.*;
 import oscP5.*;
 import netP5.*;
+import ddf.minim.*;
+import ddf.minim.analysis.*;
+Minim minim;
+AudioInput in;
+FFT fft1, fft2;
 
 // Audio imports and Variables
-FFT fft1, fft2;
-AudioDevice device;
+// Define how many FFT bands we want
+int bands = 128;
+
+/*AudioDevice device;
 AudioIn in1, in2;
 HighPass highPass;
-Amplitude rms;
+Amplitude rms1, rms2;
+*/
 // Declare a scaling factor
-int scale=5;
-// Define how many FFT bands we want
-int bands = 256;
+int scale=10;
+
 // declare a drawing variable for calculating rect width
 float r_width;
 // Create a smoothing vector
@@ -45,7 +51,7 @@ String DMXPRO_PORT=Serial.list()[1];//case matters ! on windows port must be upp
 int DMXPRO_BAUDRATE=115000;
 
 void setup(){
-  size(200, 420); 
+  size(200, 420, P3D);
   background(0);
   noStroke();
   frameRate(30);
@@ -67,14 +73,23 @@ void setup(){
    nodejsServer = new NetAddress("127.0.0.1",3334);
    
   // Create the Input stream
-  device = new AudioDevice(this, 44000, bands);
-  // Calculate the width of the rects depending on how many bands we have
-  r_width = width/float(bands);
+  //device = new AudioDevice(this, 44000, bands);
+  minim = new Minim(this);
+  in = minim.getLineIn(Minim.STEREO, bands, 44000);
+  in.enableMonitoring();
+  fft1 = new FFT(in.bufferSize(), in.sampleRate());
+  fft2 = new FFT(in.bufferSize(), in.sampleRate());
   
+  fft1.logAverages(10, bands);
+  fft2.logAverages(10, bands);
+ 
+  // Calculate the width of the rects depending on how many bands we have
+  r_width = width*2/float(bands);
+/*   
   //Load and play a soundfile and loop it. This has to be called 
   // before the FFT is created.
   // ** WITH AUDIO INPUTS **
-  in1 = new AudioIn(this, 0);
+  in1 = new AudioIn(this, 1);
   in1.start();
   in2 = new AudioIn(this, 1);
   in2.start();
@@ -91,10 +106,14 @@ void setup(){
 
   
   // create a new Amplitude analyzer
-    rms = new Amplitude(this);
+    rms1 = new Amplitude(this);
     // Patch the input to an volume analyzer
-    rms.input(in2);
-    
+    rms1.input(in1);
+    // create a new Amplitude analyzer
+    rms2 = new Amplitude(this);
+    // Patch the input to an volume analyzer
+    rms2.input(in2);
+    */
 }
 
 int numFrames = 255;  // The number of frames in the animation
@@ -103,35 +122,25 @@ int BULB_NB = 40; // Quantity of bulbs
 Bulb bulb; 
 void draw() { 
     background(125,255,125);
-    
     // ****
     // AUDIO ANALYSIS
     // ****
     
-    fft1.analyze();
-    //fft2.analyze();
-    for (int i = 0; i < bands; i++) {
-    // smooth the FFT data by smoothing factor
-    sum1[i] += (fft1.spectrum[i] - sum1[i]) * smooth_factor;
-    //sum2[i] += (fft2.spectrum[i] - sum2[i]) * smooth_factor;
-    
-    // Identifiying objects
-    if(i > 10 && i < 15){ // PEOPLE TALKING (sometimes can't sepate other noise)
-      if(sum1[i]*height*scale > 3 && sum1[i]*height*scale < 10) println("people talking");//println(i, sum[i]*height*scale);
+    fft1.forward(in.left);
+    fft2.forward(in.right);
+
+    for(int i = 0; i < fft1.specSize(); i++) { 
+      sum1[i] += (dB(fft1.getBand(i)) - sum1[i]) * smooth_factor;  // smooth the FFT data by smoothing factor
+     // println(dB(fft1.getBand(i)), fft1.getBand(i));
+       //objectIdentif(i, sum1[i]);
+      rect( i*r_width, height-height/2, r_width, -sum1[i]*scale/2-height/2 ); //Draw the bands
     }
-    if(i > 0 && i < 5){ // BUS ENGINE
-      if(sum1[i]*height*scale > 25 && sum1[i]*height*scale < 30) {println("bus engine");}
-      else if(sum1[i]*height*scale > 30 && sum1[i]*height*scale < 40) {println("bus engine");}
-      else if (sum1[i]*height*scale > 40){println("TOO loud bus engine"); }
+    for(int i = 0; i < fft2.specSize(); i++) {
+      sum2[i] += (dB(fft2.getBand(i)) - sum2[i]) * smooth_factor;  // smooth the FFT data by smoothing factor
+      //objectIdentif(i, sum2[i]);
+      rect( i*r_width, height, r_width, -sum2[i]*scale ); //Draw the bands
     }
-    if(i > 30 && i < 35){ // TRAM BIP
-      if(sum1[i]*height*scale > 3 && sum1[i]*height*scale < 10) println("TRAM BIP");//println(i, sum[i]*height*scale);
-    }
-    if(i > 145 && i < 155){ // BUs STOPping
-      if(sum1[i]*height*scale > 10 && sum1[i]*height*scale < 15) println("STOPPING"); 
-      //println(i, sum[i]*height*scale);
-    }
-    }
+   
     
      // ****
     // LIGHT BEHAVIOUR
@@ -259,11 +268,14 @@ void draw() {
                       tempYpos = (i-20)*20+20;
                       tempXpos = 120;
                     }
-           int dc = int(map(rms.analyze(), 0, 0.5, 0, 255)); // Modifies the color with sound amplitude
-           bulb = new Bulb(dc,255-dc,255, 1, tempXpos, tempYpos, 15);
-           bulb.display();
-           dmxOutput.set(i,dc);
            
+           int dc = int(map(int(dB(fft1.getFreq(i))), 0, 15, 0, 255)); // Modifies the color with sound amplitude
+           bulb = new Bulb(dc,dc,dc, 1, tempXpos, tempYpos, 15);
+           bulb.display();
+           //println(dB(fft1.getFreq(i)), " - ", dB(fft2.getFreq(i)));
+           //dmxOutput.set(i,dc);
+           println(dc, dB(fft1.getFreq(i)));
+          // println("rms1: ",int(map(in.left.get(i), 0, 0.5, 0, 255))," - rms2: ",int(map(in.right.get(i), 0, 0.5, 0, 255)));
            
           }
           break;
@@ -341,7 +353,35 @@ void keyPressed() {
     chosenSpeed = '0';
   }
 }
-
+float dB(float x) {
+  if (x == 0) {
+    return 0;
+  }
+  else if (x < 0) {
+    return 0;
+  }
+  else {
+    return 10 * (float)Math.log10(x);
+  }
+}
+void objectIdentif(int i, float sum){
+  // Identifiying objects
+    if(i > 10 && i < 15){ // PEOPLE TALKING (sometimes can't sepate other noise)
+      if(sum*height*scale > 3 && sum*height*scale < 10) println("people talking");//println(i, sum[i]*height*scale);
+    }
+    if(i > 0 && i < 5){ // BUS ENGINE
+      if(sum*height*scale > 25 && sum*height*scale < 30) {println("bus engine");}
+      else if(sum*height*scale > 30 && sum*height*scale < 40) {println("bus engine");}
+      else if (sum*height*scale > 40){println("TOO loud bus engine"); }
+    }
+    if(i > 30 && i < 35){ // TRAM BIP
+      if(sum*height*scale > 3 && sum*height*scale < 10) println("TRAM BIP");//println(i, sum[i]*height*scale);
+    }
+    if(i > 145 && i < 155){ // BUs STOPping
+      if(sum*height*scale > 10 && sum*height*scale < 15) println("STOPPING"); 
+      //println(i, sum*height*scale);
+    }
+}
  void receive(char s){
    receivedString=s;
  }
