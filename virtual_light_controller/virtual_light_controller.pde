@@ -35,11 +35,29 @@ int i;
 float tempYpos;
 float tempXpos;
 
+// DMX Libraries 
+import dmxP512.*;
+import processing.serial.*;
+
+DmxP512 dmxOutput;
+int universeSize=128;
+
+boolean LANBOX=false;
+String LANBOX_IP="192.168.1.77";
+
+boolean DMXPRO=true;
+String DMXPRO_PORT=Serial.list()[1];//case matters ! on windows port must be upper cased.
+int DMXPRO_BAUDRATE=115000;
+
 void setup(){
   size(200, 420); 
   background(0);
   noStroke();
   frameRate(30);
+  
+  /* Start DMX */
+  if(DMXPRO){dmxOutput=new DmxP512(this,universeSize,false);
+  dmxOutput.setupDmxPro(DMXPRO_PORT,DMXPRO_BAUDRATE);}
   
   /* start oscP5, listening for incoming messages at port 12000 */
   oscP5 = new OscP5(this,3333);
@@ -146,6 +164,7 @@ void draw() {
              cm = millis() % 255;
              bulb = new Bulb(cm,cm,cm, 1, tempXpos, tempYpos, 15); }
              bulb.display();
+             
           }
           break;
            // *** CASE B  //  slow progression ***
@@ -248,6 +267,7 @@ void draw() {
            bulb = new Bulb(dc,255-dc,255, 1, tempXpos, tempYpos, 15);
            bulb.display();
            println(dc);
+           if(DMXPRO){dmxOutput.set(i,dc);}
           }
           break;
        }
