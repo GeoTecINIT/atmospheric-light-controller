@@ -18,6 +18,3 @@ Nodejs server:
 	node /webserver/server.js (OSC-NODE connector)
 	DEBUG MODE: DEBUG=socket.io* node
 
-MAX audio controller:
-- Pendent
-

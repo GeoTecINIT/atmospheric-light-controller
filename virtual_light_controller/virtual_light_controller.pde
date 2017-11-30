@@ -38,13 +38,8 @@ float tempXpos;
 // DMX Libraries 
 import dmxP512.*;
 import processing.serial.*;
-
 DmxP512 dmxOutput;
-int universeSize=128;
-
-boolean LANBOX=false;
-String LANBOX_IP="192.168.1.77";
-
+int universeSize=120;
 boolean DMXPRO=true;
 String DMXPRO_PORT=Serial.list()[1];//case matters ! on windows port must be upper cased.
 int DMXPRO_BAUDRATE=115000;
@@ -101,6 +96,7 @@ void setup(){
     rms.input(in2);
     
 }
+
 int numFrames = 255;  // The number of frames in the animation
 int currentFrame = 0;
 int BULB_NB = 40; // Quantity of bulbs
@@ -254,7 +250,7 @@ void draw() {
           break;
           // *** CASE DEFAULT: Sound Amplitude response ***
          default:
-          for (i = 0; i < BULB_NB; i++){ //iterate through the bulbs
+          for (i = 0; i < BULB_NB*3; i++){ //iterate through the bulbs
                     
                         //defining the position of bulbs in graph
                     tempYpos = i*20+20;
@@ -267,7 +263,8 @@ void draw() {
            bulb = new Bulb(dc,255-dc,255, 1, tempXpos, tempYpos, 15);
            bulb.display();
            println(dc);
-           if(DMXPRO){dmxOutput.set(i,dc);}
+           
+           
           }
           break;
        }
