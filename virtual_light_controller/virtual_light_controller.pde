@@ -255,6 +255,7 @@ void draw() {
                       tempXpos = 120;
                     }
               bulb = new Bulb(0,0,0, 0, tempXpos, tempYpos, 15); 
+              dmxOutput.set(i,0);
             }
           break;
           // *** CASE DEFAULT: Sound Amplitude response ***
@@ -273,7 +274,7 @@ void draw() {
            bulb = new Bulb(dc,dc,dc, 1, tempXpos, tempYpos, 15);
            bulb.display();
            //println(dB(fft1.getFreq(i)), " - ", dB(fft2.getFreq(i)));
-           //dmxOutput.set(i,dc);
+           dmxOutput.set(i,dc);
            println(dc, dB(fft1.getFreq(i)));
           // println("rms1: ",int(map(in.left.get(i), 0, 0.5, 0, 255))," - rms2: ",int(map(in.right.get(i), 0, 0.5, 0, 255)));
            
