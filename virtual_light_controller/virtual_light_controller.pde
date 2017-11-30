@@ -255,7 +255,27 @@ void draw() {
                       tempXpos = 120;
                     }
               bulb = new Bulb(0,0,0, 0, tempXpos, tempYpos, 15); 
-              dmxOutput.set(i,0);
+              bulb.display();
+            }
+            for (int e = 0; e < BULB_NB*3; e++){
+            dmxOutput.set(e,0);
+          }
+          break;
+          // *** CASE Z: LIGHTS WHITE ***
+          case 'Z':
+            for (i = 0; i < BULB_NB; i++){ //iterate through the bulbs
+                        //defining the position of bulbs in graph
+                    tempYpos = i*20+20;
+                    tempXpos = 80;
+                    if(i>19){ //change position values to draw two lines
+                      tempYpos = (i-20)*20+20;
+                      tempXpos = 120;
+                    }
+              bulb = new Bulb(255,255,255, 0, tempXpos, tempYpos, 15); 
+              bulb.display();
+            }
+            for (int e = 0; e < BULB_NB; e++){
+            dmxOutput.set(e,255);
             }
           break;
           // *** CASE DEFAULT: Sound Amplitude response ***
@@ -325,6 +345,9 @@ void keyPressed() {
   }else if (key == 'x' || key == 'X') {
     print("Key pressed: option X\n");
     chosenOption = 'X';
+  }else if (key == 'z' || key == 'Z') {
+    print("Key pressed: option Z\n");
+    chosenOption = 'Z';
   }else if (key == 'n' || key == 'N') {
     print("option set to empty\n");
     chosenOption = '\n';
