@@ -62,8 +62,8 @@ void setup(){
   frameRate(30);
   
   /* Start DMX */
-  if(DMXPRO){dmxOutput=new DmxP512(this,universeSize,false);
-  dmxOutput.setupDmxPro(DMXPRO_PORT,DMXPRO_BAUDRATE);}
+  if(DMXPRO){dmxOutput=new DmxP512(this,universeSize,true);
+  dmxOutput.setupDmxPro(DMXPRO_PORT);}
   
   /* start oscP5, listening for incoming messages at port 12000 */
   oscP5 = new OscP5(this,3333);
@@ -283,7 +283,7 @@ void draw() {
            bulb.display();
            if(dc > 255){dc = 255;}
            setDMX(i,dc,dc,dc);
-
+           dmxOutput.set(i,dc); 
           }
           break;
        }
@@ -409,13 +409,11 @@ int[] mapDMX(int bulb){
  else {int[] r = {0,0,0}; return r;}
 }
 void setDMX(int bulb, int val1, int val2, int val3){
-  if(bulb < 39){ 
      if(DMXPRO){
        dmxOutput.set(mapDMX(bulb)[0],val1); 
        dmxOutput.set(mapDMX(bulb)[1],val2); 
        dmxOutput.set(mapDMX(bulb)[2],val3);
      }
-  }
 }
 int calcAmplitude(float[] peaks){
   int tempAmplitude = 0;int avgSize = 0;
@@ -535,4 +533,5 @@ void stop()
   in.close();
   minim.stop();
   super.stop();
+  dmxOutput.reset();
 }
