@@ -171,6 +171,7 @@ void draw() {
              bulb.display();
              
           }
+          
           break;
            // *** CASE B  //  slow progression ***
          case 'B':
@@ -256,10 +257,8 @@ void draw() {
                     }
               bulb = new Bulb(0,0,0, 0, tempXpos, tempYpos, 15); 
               bulb.display();
+              setDMX(i,0,0,0);
             }
-            for (int e = 0; e < BULB_NB*3; e++){
-            dmxOutput.set(e,0);
-          }
           break;
           // *** CASE Z: LIGHTS WHITE ***
           case 'Z':
@@ -273,14 +272,14 @@ void draw() {
                     }
               bulb = new Bulb(255,255,255, 0, tempXpos, tempYpos, 15); 
               bulb.display();
+              setDMX(i,255,255,255);
             }
-            for (int e = 0; e < BULB_NB; e++){
-            dmxOutput.set(e,255);
-            }
+            
+            
           break;
           // *** CASE DEFAULT: Sound Amplitude response ***
          default:
-          for (i = 0; i < BULB_NB*3; i++){ //iterate through the bulbs
+          for (i = 0; i < BULB_NB; i++){ //iterate through the bulbs
                     
                         //defining the position of bulbs in graph
                     tempYpos = i*20+20;
@@ -294,7 +293,7 @@ void draw() {
            bulb = new Bulb(dc,dc,dc, 1, tempXpos, tempYpos, 15);
            bulb.display();
            //println(dB(fft1.getFreq(i)), " - ", dB(fft2.getFreq(i)));
-           dmxOutput.set(i,dc);
+           setDMX(i,dc,dc,dc);
            println(dc, dB(fft1.getFreq(i)));
           // println("rms1: ",int(map(in.left.get(i), 0, 0.5, 0, 255))," - rms2: ",int(map(in.right.get(i), 0, 0.5, 0, 255)));
            
@@ -387,6 +386,36 @@ float dB(float x) {
   else {
     return 10 * (float)Math.log10(x);
   }
+}
+int[] mapDMX(int bulb){  
+ if(bulb==0){ int[] r = {1,2,3}; return r; }
+ else if(bulb==1){ int[] r = {4,5,6}; return r; }
+ else if(bulb==2){ int[] r = {7,8,9}; return r; }  
+ else if(bulb==3){ int[] r = {10,11,12}; return r; }  
+ else if(bulb==4){ int[] r = {13,14,15}; return r; }  
+ else if(bulb==5){ int[] r = {16,17,18}; return r; } 
+ else if(bulb==6){ int[] r = {19,20,21}; return r; }
+ else if(bulb==7){ int[] r = {22,23,24}; return r; }  
+ else if(bulb==8){ int[] r = {25,26,27}; return r; }  
+ else if(bulb==9){ int[] r = {28,29,30}; return r; }  
+ else if(bulb==10){ int[] r = {31,32,33}; return r; } 
+ else if(bulb==11){ int[] r = {34,35,36}; return r; }
+ else if(bulb==12){ int[] r = {37,38,39}; return r; }  
+ else if(bulb==13){ int[] r = {40,41,42}; return r; }  
+ else if(bulb==14){ int[] r = {43,44,45}; return r; }  
+ else if(bulb==15){ int[] r = {46,47,48}; return r; } 
+ else if(bulb==16){ int[] r = {49,50,51}; return r; }
+ else if(bulb==17){ int[] r = {52,53,54}; return r; }  
+ else if(bulb==18){ int[] r = {55,56,57}; return r; }  
+ else if(bulb==19){ int[] r = {58,59,60}; return r; }  
+ else {int[] r = {0,0,0}; return r;}
+}
+void setDMX(int bulb, int val1, int val2, int val3){
+     if(DMXPRO){
+       dmxOutput.set(mapDMX(bulb)[0],val1); 
+       dmxOutput.set(mapDMX(bulb)[1],val2); 
+       dmxOutput.set(mapDMX(bulb)[2],val3);
+     }
 }
 void objectIdentif(int i, float sum){
   // Identifiying objects
