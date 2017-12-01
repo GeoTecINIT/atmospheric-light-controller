@@ -8,28 +8,33 @@ import ddf.minim.analysis.*;
 Minim minim;
 AudioInput in;
 FFT fft1, fft2;
+AudioPlayer song;
+boolean soundIn = false;
+/** SOUND VARIABLES **/
 
-// Audio imports and Variables
-// Define how many FFT bands we want
-int bands = 128;
+float[] peaks;
+int peak_hold_time = 10;  // how long before peak decays
+int[] peak_age;  // tracks how long peak has been stable, before decaying
 
-/*AudioDevice device;
-AudioIn in1, in2;
-HighPass highPass;
-Amplitude rms1, rms2;
-*/
-// Declare a scaling factor
-int scale=10;
+// how wide each 'peak' band is, in fft bins
+int binsperband = 10;
+int peaksize; // how many individual peak buffer_size we have (dep. binsperband)
+float gain = 40; // in dB
+float dB_scale = 2.0;  // pixels per dB
 
-// declare a drawing variable for calculating rect width
-float r_width;
-// Create a smoothing vector
-float[] sum1 = new float[bands];
-float[] sum2 = new float[bands];
-// Create a smoothing factor
-float smooth_factor = 0.2;
+int buffer_size = 1024;  // also sets FFT size (frequency resolution)
+float sample_rate = 44100;
 
-// Lights and server variables
+int spectrum_height = 200; // determines range of dB shown
+int legend_height = 20;
+int spectrum_width = 512; // determines how much of spectrum we see
+int legend_width = 40;
+
+int engineCalc = 0;
+boolean engineNoise = false;
+boolean windNoise = false;
+
+/** Lights and server variables **/
 OscP5 oscP5;
 NetAddress nodejsServer;
 char receivedString;
@@ -41,7 +46,7 @@ int i;
 float tempYpos;
 float tempXpos;
 
-// DMX Libraries 
+// DMX Libraries and variables
 import dmxP512.*;
 import processing.serial.*;
 DmxP512 dmxOutput;
@@ -71,49 +76,35 @@ void setup(){
    * send messages back to this sketch.
    */
    nodejsServer = new NetAddress("127.0.0.1",3334);
-   
-  // Create the Input stream
-  //device = new AudioDevice(this, 44000, bands);
+  
+   /* Start Minim SOUND ANAL */
+
+     // Create the Input stream
   minim = new Minim(this);
-  in = minim.getLineIn(Minim.STEREO, bands, 44000);
+  
+  // this loads mysong.wav from the data folder
+  if(soundIn){
+    in = minim.getLineIn(Minim.STEREO, buffer_size, 44000);
   in.enableMonitoring();
   fft1 = new FFT(in.bufferSize(), in.sampleRate());
   fft2 = new FFT(in.bufferSize(), in.sampleRate());
+  }else{
+  song = minim.loadFile("../sound-analysis/data/dic17_motor2.aiff");
+  song.loop();
+  fft1 = new FFT(song.bufferSize(), song.sampleRate());
+  fft2 = new FFT(song.bufferSize(), song.sampleRate());
+  }
+   
+  //fft1.logAverages(10, buffer_size);
+  //fft2.logAverages(10, buffer_size);
   
-  fft1.logAverages(10, bands);
-  fft2.logAverages(10, bands);
- 
-  // Calculate the width of the rects depending on how many bands we have
-  r_width = width*2/float(bands);
-/*   
-  //Load and play a soundfile and loop it. This has to be called 
-  // before the FFT is created.
-  // ** WITH AUDIO INPUTS **
-  in1 = new AudioIn(this, 1);
-  in1.start();
-  in2 = new AudioIn(this, 1);
-  in2.start();
+  fft1.window(FFT.HAMMING);
+  fft2.window(FFT.HAMMING);
+  // initialize peak-hold structures
+  peaksize = 1+Math.round(fft1.specSize()/binsperband);
+  peaks = new float[peaksize];
+  peak_age = new int[peaksize];
   
-    // FILTERS **
-  highPass = new HighPass(this);
-  highPass.process(in1, 100);
-  
-    // Create and patch the FFT analyzer
-  fft1 = new FFT(this, bands);
-  fft1.input(highPass); // <--- Change for sample or in (or filtered band)
-  //fft2 = new FFT(this, bands);
-  //fft2.input(in2);
-
-  
-  // create a new Amplitude analyzer
-    rms1 = new Amplitude(this);
-    // Patch the input to an volume analyzer
-    rms1.input(in1);
-    // create a new Amplitude analyzer
-    rms2 = new Amplitude(this);
-    // Patch the input to an volume analyzer
-    rms2.input(in2);
-    */
 }
 
 int numFrames = 255;  // The number of frames in the animation
@@ -126,19 +117,30 @@ void draw() {
     // AUDIO ANALYSIS
     // ****
     
-    fft1.forward(in.left);
-    fft2.forward(in.right);
-
-    for(int i = 0; i < fft1.specSize(); i++) { 
-      sum1[i] += (dB(fft1.getBand(i)) - sum1[i]) * smooth_factor;  // smooth the FFT data by smoothing factor
-     // println(dB(fft1.getBand(i)), fft1.getBand(i));
-       //objectIdentif(i, sum1[i]);
-      rect( i*r_width, height-height/2, r_width, -sum1[i]*scale/2-height/2 ); //Draw the bands
+    if(soundIn){ fft1.forward(in.left); fft2.forward(in.right);}
+    else{ fft1.forward(song.left); fft2.forward(song.right);}
+     
+    noStroke();
+    fill(0, 128, 144); // dim cyan
+    engineCalc = int((peaks[2]+peaks[3]+peaks[4])/3);
+    if( engineCalc > 45) { engineNoise = true; println("engine db: ", engineCalc);}else{ engineNoise = false;}
+    if((peaks[40]+peaks[50]+peaks[peaksize-1])/3 > 5) { windNoise = true; println("windy");}else{ windNoise = false;}
+    println(peaks[1]);
+    for(int i = 0; i < peaksize; ++i) { 
+    int thisy = spectrum_height - Math.round(peaks[i]);
+    if(peaks[i]> 0.0){ 
+      println(i, peaks[i]);
+      objectIdentif(i, peaks);
+      spectColors(peaks[i], i);
     }
-    for(int i = 0; i < fft2.specSize(); i++) {
-      sum2[i] += (dB(fft2.getBand(i)) - sum2[i]) * smooth_factor;  // smooth the FFT data by smoothing factor
-      //objectIdentif(i, sum2[i]);
-      rect( i*r_width, height, r_width, -sum2[i]*scale ); //Draw the bands
+      rect(legend_width+binsperband*i, thisy, binsperband, spectrum_height-thisy);
+      // update decays
+     if (peak_age[i] < peak_hold_time) {
+        ++peak_age[i];
+      } else {
+        peaks[i] -= 1.0;
+        if (peaks[i] < 0) { peaks[i] = 0; }
+      }
     }
    
     
@@ -148,7 +150,6 @@ void draw() {
     
     a++; if(a>255){a=0;} // A is going trough color spectrum
     currentFrame = (currentFrame+1) % numFrames;  // Use % to cycle through frames
-    int offset = 0;
          switch(chosenOption){
             // *** CASE A : Alternate strobo between lights  ***
         case 'A': 
@@ -289,14 +290,12 @@ void draw() {
                       tempXpos = 120;
                     }
            
-           int dc = int(map(int(dB(fft1.getFreq(i))), 0, 15, 0, 255)); // Modifies the color with sound amplitude
+           int dc = int(map(int(engineCalc), 0, 15, 0, 255)); // Modifies the color with sound amplitude
            bulb = new Bulb(dc,dc,dc, 1, tempXpos, tempYpos, 15);
            bulb.display();
-           //println(dB(fft1.getFreq(i)), " - ", dB(fft2.getFreq(i)));
            setDMX(i,dc,dc,dc);
-           println(dc, dB(fft1.getFreq(i)));
-          // println("rms1: ",int(map(in.left.get(i), 0, 0.5, 0, 255))," - rms2: ",int(map(in.right.get(i), 0, 0.5, 0, 255)));
-           
+           //println(dc, (peaks[2]+peaks[3]+peaks[4])/3);
+
           }
           break;
        }
@@ -376,17 +375,7 @@ void keyPressed() {
     chosenSpeed = '0';
   }
 }
-float dB(float x) {
-  if (x == 0) {
-    return 0;
-  }
-  else if (x < 0) {
-    return 0;
-  }
-  else {
-    return 10 * (float)Math.log10(x);
-  }
-}
+
 int[] mapDMX(int bulb){  
  if(bulb==0){ int[] r = {1,2,3}; return r; }
  else if(bulb==1){ int[] r = {4,5,6}; return r; }
@@ -417,22 +406,54 @@ void setDMX(int bulb, int val1, int val2, int val3){
        dmxOutput.set(mapDMX(bulb)[2],val3);
      }
 }
-void objectIdentif(int i, float sum){
+void objectIdentif(int i, float peaks[]){ // detects objects in sounds
   // Identifiying objects
     if(i > 10 && i < 15){ // PEOPLE TALKING (sometimes can't sepate other noise)
-      if(sum*height*scale > 3 && sum*height*scale < 10) println("people talking");//println(i, sum[i]*height*scale);
+      if(engineNoise == false && windNoise == false  && peaks[i] > 10 && peaks[i] < 35) {println("people talking", i, peaks[i]);}
+      if(windNoise == true && peaks[i] > 15 && peaks[i] < 35) {println("people talking", i, peaks[i]);}
+      if(engineNoise == true && peaks[i] > 35) {println("people talking", i, peaks[i]);}
     }
-    if(i > 0 && i < 5){ // BUS ENGINE
-      if(sum*height*scale > 25 && sum*height*scale < 30) {println("bus engine");}
-      else if(sum*height*scale > 30 && sum*height*scale < 40) {println("bus engine");}
-      else if (sum*height*scale > 40){println("TOO loud bus engine"); }
+    if(i > 1 && i < 5){ // BUS ENGINE
+     /* if(peaks[i] > 40 && peaks[i] < 55) {println("bus engine", i, peaks[i]);}
+      else if(peaks[i] > 55 && peaks[i] < 65) {println("bus engine", i, peaks[i]);}
+      else if (peaks[i] > 65){println("TOO loud bus engine", i, peaks[i]); } */
     }
-    if(i > 30 && i < 35){ // TRAM BIP
-      if(sum*height*scale > 3 && sum*height*scale < 10) println("TRAM BIP");//println(i, sum[i]*height*scale);
+    if(i > 8 && i < 10){ // TRAM BIP
+     if(peaks[i] > 40 && peaks[i] < 40) println("TRAM BIP");//println(i, sum[i]*height*scale);
     }
-    if(i > 145 && i < 155){ // BUs STOPping
-      if(sum*height*scale > 10 && sum*height*scale < 15) println("STOPPING"); 
+    if(i > 9 && i < 13){ // BUs STOPping
+      if(peaks[i] > 50) println("STOPPING", i, peaks[i]); 
       //println(i, sum*height*scale);
+    }
+}
+void spectColors(float fft, int i){ // separate bands in buffer and draw in colors
+   // Defining colors of spectrum bars
+    if(i < 1){ fill(255,255,255);}
+    else if(i > 1 && i < 5){ // split each of the buffer_size
+    fill(250,250,250);
+      if(fft > 40){ fill(250,250,0); }
+    }else if(i > 5 && i < 10){
+      fill(200,200,200);
+      if(fft > 25){ fill(200,200,0); }
+    }
+    else if(i > 10 && i < 20){
+      fill(150,150,150);
+     // println(nf(fft.spectrum[i], 1, 3));
+      if(fft > 15){ fill(150,150,0); }
+    }else if(i > 20 && i < 30){
+      fill(100,100,100);
+      if(fft > 15){ fill(100,100,0); }
+    }
+    else if(i > 30 && i < 50){
+      fill(50,50,50);
+      if(fft > 15){ fill(50,50,0); }
+    }
+    else if(i > 50){
+      fill(10,10,10);
+      if(fft > 15){ fill(10,10,0); }
+    }
+    if(fft > 65){ // if buffer_size surpasses a threshold
+      fill(255,0,0);
     }
 }
  void receive(char s){
@@ -449,4 +470,11 @@ void oscEvent(OscMessage theOscMessage) {
       chosenOption = receivedString;
     }  
   }
+}
+void stop()
+{
+  // always close Minim audio classes when you finish with them
+  in.close();
+  minim.stop();
+  super.stop();
 }
