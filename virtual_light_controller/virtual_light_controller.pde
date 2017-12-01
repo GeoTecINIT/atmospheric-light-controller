@@ -8,16 +8,16 @@ Minim minim;
 AudioInput in;
 FFT fft1, fft2;
 AudioPlayer song;
-boolean soundIn = false;
+boolean soundIn = true;
 /** SOUND VARIABLES **/
 
-float[] peaks;
+float[] peaks1, peaks2;
 int peak_hold_time = 10;  // how long before peak decays
-int[] peak_age;  // tracks how long peak has been stable, before decaying
+int[] peak_age1, peak_age2;  // tracks how long peak has been stable, before decaying
 
 // how wide each 'peak' band is, in fft bins
 int binsperband = 10;
-int peaksize; // how many individual peak buffer_size we have (dep. binsperband)
+int peaksize1, peaksize2; // how many individual peak buffer_size we have (dep. binsperband)
 float gain = 40; // in dB
 float dB_scale = 2.0;  // pixels per dB
 
@@ -32,8 +32,8 @@ int legend_width = 0;
 int engineCalc = 0;
 boolean engineNoise = false;
 boolean windNoise = false;
-int avgAmplitude;
-int avgSize = 0;
+int avgAmplitude1, avgAmplitude2;
+
 /** Lights and server variables **/
 OscP5 oscP5;
 NetAddress nodejsServer;
@@ -101,9 +101,13 @@ void setup(){
   fft1.window(FFT.HAMMING);
   fft2.window(FFT.HAMMING);
   // initialize peak-hold structures
-  peaksize = 1+Math.round(fft1.specSize()/binsperband);
-  peaks = new float[peaksize];
-  peak_age = new int[peaksize];
+  peaksize1 = 1+Math.round(fft1.specSize()/binsperband);
+  peaks1 = new float[peaksize1];
+  peak_age1 = new int[peaksize1];
+  
+  peaksize2 = 1+Math.round(fft2.specSize()/binsperband);
+  peaks2 = new float[peaksize2];
+  peak_age2 = new int[peaksize2];
   
 }
 
@@ -119,53 +123,14 @@ void draw() {
     
     if(soundIn){ fft1.forward(in.left); fft2.forward(in.right);}
     else{ fft1.forward(song.left); fft2.forward(song.right);}
-     
-    noStroke();
-    fill(0, 128, 144); // dim cyan
-    engineCalc = int((peaks[2]+peaks[3]+peaks[4])/3);
-    int tempAmplitude = 0;avgSize = 0;
-    for(int i = 0; i < 20; ++i){
-      tempAmplitude += peaks[i];
-      avgSize+=1;
-    }
-    avgAmplitude = tempAmplitude/avgSize;
+    engineCalc = int((peaks1[2]+peaks1[3]+peaks1[4])/3);
     
     if( engineCalc > 45) { engineNoise = true; println("engine db: ", engineCalc);}else{ engineNoise = false;}
-    if((peaks[40]+peaks[50]+peaks[peaksize-1])/3 > 5) { windNoise = true; println("windy");}else{ windNoise = false;}
-    for(int i = 0; i < peaksize; ++i) { 
-    int thisy = spectrum_height - Math.round(peaks[i]);
-    if(peaks[i]> 0.0){ 
-      objectIdentif(i, peaks);
-      spectColors(peaks[i], i);
-    }
-      rect(legend_width+binsperband*i, thisy, binsperband, spectrum_height-thisy);
-      // update decays
-     if (peak_age[i] < peak_hold_time) {
-        ++peak_age[i];
-      } else {
-        peaks[i] -= 1.0;
-        if (peaks[i] < 0) { peaks[i] = 0; }
-      }
-    }
-    stroke(64,192,255);
-    noFill();
-    for(int i = 0; i < spectrum_width; i++)  {
-      // draw the line for frequency band i using dB scale
-      float val = dB_scale*(20*((float)Math.log10(fft1.getBand(i))) + gain);
-      if (fft1.getBand(i) == 0) {   val = -200;   }  // avoid log(0)
-      int y = spectrum_height - Math.round(val);
-      if (y > spectrum_height) { y = spectrum_height; }
-      line(legend_width+i, spectrum_height, legend_width+i, y);
-      // update the peak record
-      // which peak bin are we in?
-      int peaksi = i/binsperband;
-      if (val > peaks[peaksi]) {
-        peaks[peaksi] = val;
-        // reset peak age counter
-        peak_age[peaksi] = 0;
-      }
-    }
-     
+    if((peaks1[40]+peaks1[50]+peaks1[peaksize1-1])/3 > 5) { windNoise = true; println("windy");}else{ windNoise = false;} 
+    avgAmplitude1 = calcAmplitude(peaks1);
+    avgAmplitude2 = calcAmplitude(peaks2);
+    drawSpecto(peaks1, peaksize1, peak_age1);
+    drawSpecto(peaks2, peaksize2, peak_age2); 
     
      // ****
     // LIGHT BEHAVIOUR
@@ -313,11 +278,11 @@ void draw() {
                       tempXpos = 120;
                     }
            
-           int dc = int(map(int(avgAmplitude), 0, 70, 0, 255)); // Modifies the color with sound amplitude
+           int dc = int(map((avgAmplitude1+avgAmplitude1)/2, 0, 55, 0, 255)); // Modifies the color with sound amplitude
            bulb = new Bulb(dc,dc,dc, 1, tempXpos, tempYpos, 15);
            bulb.display();
-           //setDMX(i,dc,dc,dc);
-           println(dc, avgAmplitude);
+           setDMX(i,dc,dc,dc);
+           //println(dc, avgAmplitude);
 
           }
           break;
@@ -429,6 +394,53 @@ void setDMX(int bulb, int val1, int val2, int val3){
        dmxOutput.set(mapDMX(bulb)[1],val2); 
        dmxOutput.set(mapDMX(bulb)[2],val3);
      }
+}
+int calcAmplitude(float[] peaks){
+  int tempAmplitude = 0;int avgSize = 0;
+    for(int i = 0; i < 20; ++i){
+      tempAmplitude += peaks[i];
+      avgSize+=1;
+    }
+    float amplitude = tempAmplitude/avgSize;
+    return int(amplitude);
+}
+void drawSpecto(float[] peaks, int peaksize, int[] peak_age){
+  noStroke();
+    fill(0, 128, 144); // dim cyan
+    
+    for(int i = 0; i < peaksize; ++i) { 
+    int thisy = spectrum_height - Math.round(peaks[i]);
+    if(peaks[i]> 0.0){ 
+      objectIdentif(i, peaks);
+      spectColors(peaks[i], i);
+    }
+      rect(legend_width+binsperband*i, thisy, binsperband, spectrum_height-thisy);
+      // update decays
+     if (peak_age[i] < peak_hold_time) {
+        ++peak_age[i];
+      } else {
+        peaks[i] -= 1.0;
+        if (peaks[i] < 0) { peaks[i] = 0; }
+      }
+    }
+    stroke(64,192,255);
+    noFill();
+    for(int i = 0; i < spectrum_width; i++)  {
+      // draw the line for frequency band i using dB scale
+      float val = dB_scale*(20*((float)Math.log10(fft1.getBand(i))) + gain);
+      if (fft1.getBand(i) == 0) {   val = -200;   }  // avoid log(0)
+      int y = spectrum_height - Math.round(val);
+      if (y > spectrum_height) { y = spectrum_height; }
+      line(legend_width+i, spectrum_height, legend_width+i, y);
+      // update the peak record
+      // which peak bin are we in?
+      int peaksi = i/binsperband;
+      if (val > peaks[peaksi]) {
+        peaks[peaksi] = val;
+        // reset peak age counter
+        peak_age[peaksi] = 0;
+      }
+    }
 }
 void objectIdentif(int i, float peaks[]){ // detects objects in sounds
   // Identifiying objects
