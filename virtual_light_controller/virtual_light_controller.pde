@@ -409,7 +409,7 @@ int[] mapDMX(int bulb){
  else {int[] r = {0,0,0}; return r;}
 }
 void setDMX(int bulb, int val1, int val2, int val3){
-  if(bulb < 19){ 
+  if(bulb < 39){ 
      if(DMXPRO){
        dmxOutput.set(mapDMX(bulb)[0],val1); 
        dmxOutput.set(mapDMX(bulb)[1],val2); 
