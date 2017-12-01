@@ -125,8 +125,8 @@ void draw() {
     else{ fft1.forward(song.left); fft2.forward(song.right);}
     engineCalc = int((peaks1[2]+peaks1[3]+peaks1[4])/3);
     
-    if( engineCalc > 45) { engineNoise = true; println("engine db: ", engineCalc);}else{ engineNoise = false;}
-    if((peaks1[40]+peaks1[50]+peaks1[peaksize1-1])/3 > 5) { windNoise = true; println("windy");}else{ windNoise = false;} 
+    if( engineCalc > 45) { engineNoise = true; text("engine db: "+ engineCalc, 20, 465);}else{ engineNoise = false;}
+    if((peaks1[40]+peaks1[50]+peaks1[peaksize1-1])/3 > 5) { windNoise = true; text("windy", 20, 465);}else{ windNoise = false;} 
     avgAmplitude1 = calcAmplitude(peaks1);
     avgAmplitude2 = calcAmplitude(peaks2);
     drawSpecto(peaks1, peaksize1, peak_age1);
@@ -153,12 +153,16 @@ void draw() {
             
             if(i% 2 == 0){
               cm = (millis() + 2500) % 255; 
-              bulb = new Bulb(cm,cm,cm, 1, tempXpos, tempYpos, 15); }
+              bulb = new Bulb(cm,cm,cm, 1, tempXpos, tempYpos, 15); 
+            setDMX(i,cm,cm,cm);
+            }
              else{
              cm = millis() % 255;
-             bulb = new Bulb(cm,cm,cm, 1, tempXpos, tempYpos, 15); }
+             bulb = new Bulb(cm,cm,cm, 1, tempXpos, tempYpos, 15); 
+             setDMX(i,cm,cm,cm);
+             }
              bulb.display();
-             
+             setDMX(i,cm,cm,cm);
           }
           
           break;
@@ -176,7 +180,10 @@ void draw() {
                cm = (a+i*39)%255;
                bulb = new Bulb(cm,cm,cm, 1, tempXpos, tempYpos, 15);
                bulb.display();
+               setDMX(i,cm,cm,cm);
+               
              }
+
           break;
           // *** CASE C : Testing entire chain progression ***
           case 'C':
@@ -212,6 +219,7 @@ void draw() {
                  println(a,i,cm, frameRate);
                  bulb = new Bulb(cm,cm,cm, 1, tempXpos, tempYpos, 15);
                  bulb.display();
+                 setDMX(i,a,a,a);
               
           break;
           // *** CASE D : Parallel chain progression  ***
@@ -227,10 +235,14 @@ void draw() {
                 println(frameRate);
                 if(i >= BULB_NB/2){
                   cm = (a*(i-BULB_NB/2))%255; 
-                  bulb = new Bulb(cm,cm,cm, 1, tempXpos, tempYpos, 15); }
+                  bulb = new Bulb(cm,cm,cm, 1, tempXpos, tempYpos, 15); 
+                  setDMX(i,cm,cm,cm);
+                  }
                  else{ 
                   cm = (a*i)%255;
-                bulb = new Bulb(cm,cm,cm, 1, tempXpos, tempYpos, 15); }
+                bulb = new Bulb(cm,cm,cm, 1, tempXpos, tempYpos, 15); 
+                setDMX(i,cm,cm,cm);
+              }
                 bulb.display();
               }
           break;
@@ -283,11 +295,10 @@ void draw() {
            bulb.display();
            if(dc > 255){dc = 255;}
            setDMX(i,dc,dc,dc);
-           dmxOutput.set(i,dc); 
+           dmxOutput.set(i,dc); //for some reason this should be here (DMX doesnt work otherwise)
           }
           break;
        }
-       
     }
 
 // definir bulb
@@ -359,6 +370,14 @@ void keyPressed() {
     print("Key pressed: Speed 5\n");
     chosenSpeed = '5';
     frameRate(80);
+  }else if (key == '8') {
+    print("Key pressed: Speed 8\n");
+    chosenSpeed = '8';
+    frameRate(150);
+  }else if (key == '9') {
+    print("Key pressed: Speed 9\n");
+    chosenSpeed = '9';
+    frameRate(230);
   }else if (key == '0') {
     print("option set to stop\n");
     chosenSpeed = '0';
@@ -465,20 +484,20 @@ void drawSpecto(float[] peaks, int peaksize, int[] peak_age){
 void objectIdentif(int i, float peaks[]){ // detects objects in sounds
   // Identifiying objects
     if(i > 10 && i < 15){ // PEOPLE TALKING (sometimes can't sepate other noise)
-      if(engineNoise == false && windNoise == false  && peaks[i] > 10 && peaks[i] < 35) {println("people talking", i, peaks[i]);}
-      if(windNoise == true && peaks[i] > 15 && peaks[i] < 35) {println("people talking", i, peaks[i]);}
-      if(engineNoise == true && peaks[i] > 35) {println("people talking", i, peaks[i]);}
+      if(engineNoise == false && windNoise == false  && peaks[i] > 10 && peaks[i] < 35) {text("people talking", 20, 450);}
+      if(windNoise == true && peaks[i] > 15 && peaks[i] < 35) {text("people talking", 20, 450);}
+      if(engineNoise == true && peaks[i] > 35) {text("people talking", 20, 450);}
     }
     if(i > 1 && i < 5){ // BUS ENGINE
-     /* if(peaks[i] > 40 && peaks[i] < 55) {println("bus engine", i, peaks[i]);}
-      else if(peaks[i] > 55 && peaks[i] < 65) {println("bus engine", i, peaks[i]);}
-      else if (peaks[i] > 65){println("TOO loud bus engine", i, peaks[i]); } */
+      if(peaks[i] > 40 && peaks[i] < 55) {text("bus engine", 20, 450);}
+      else if(peaks[i] > 55 && peaks[i] < 65) {text("bus engine", 20, 450);}
+      else if (peaks[i] > 65){text("TOO loud bus engine", 20, 450); } 
     }
     if(i > 8 && i < 10){ // TRAM BIP
-     if(peaks[i] > 40 && peaks[i] < 40) println("TRAM BIP");//println(i, sum[i]*height*scale);
+     if(peaks[i] > 40 && peaks[i] < 40) text("TRAM BIP", 20, 450);//println(i, sum[i]*height*scale);
     }
     if(i > 9 && i < 13){ // BUs STOPping
-      if(peaks[i] > 50) println("STOPPING", i, peaks[i]); 
+      if(peaks[i] > 50) text("STOPPING"+ i + peaks[i], 20, 450); 
       //println(i, sum*height*scale);
     }
 }
