@@ -278,7 +278,7 @@ void draw() {
                       tempXpos = 120;
                     }
            
-           int dc = int(map((avgAmplitude1+avgAmplitude1)/2, 0, 55, 0, 255)); // Modifies the color with sound amplitude
+           int dc = int(map((avgAmplitude1+avgAmplitude1)/2, 0, 65, 0, 255)); // Modifies the color with sound amplitude
            bulb = new Bulb(dc,dc,dc, 1, tempXpos, tempYpos, 15);
            bulb.display();
            setDMX(i,dc,dc,dc);
@@ -389,6 +389,9 @@ int[] mapDMX(int bulb){
  else {int[] r = {0,0,0}; return r;}
 }
 void setDMX(int bulb, int val1, int val2, int val3){
+  if(val1 > 255){val1 = 255;}
+  if(val2 > 255){val2 = 255;}
+  if(val2 > 255){val2 = 255;}
      if(DMXPRO){
        dmxOutput.set(mapDMX(bulb)[0],val1); 
        dmxOutput.set(mapDMX(bulb)[1],val2); 
