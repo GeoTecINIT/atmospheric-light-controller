@@ -386,9 +386,30 @@ int[] mapDMX(int bulb){
  else if(bulb==17){ int[] r = {52,53,54}; return r; }  
  else if(bulb==18){ int[] r = {55,56,57}; return r; }  
  else if(bulb==19){ int[] r = {58,59,60}; return r; }  
+ else if(bulb==20){ int[] r = {61,62,63}; return r; }
+ else if(bulb==21){ int[] r = {64,65,66}; return r; }
+ else if(bulb==22){ int[] r = {67,68,69}; return r; }  
+ else if(bulb==23){ int[] r = {70,71,72}; return r; }  
+ else if(bulb==24){ int[] r = {73,74,75}; return r; }  
+ else if(bulb==25){ int[] r = {76,77,78}; return r; } 
+ else if(bulb==26){ int[] r = {79,80,81}; return r; }
+ else if(bulb==27){ int[] r = {82,83,84}; return r; }  
+ else if(bulb==28){ int[] r = {85,86,87}; return r; }  
+ else if(bulb==29){ int[] r = {88,89,90}; return r; }  
+ else if(bulb==30){ int[] r = {91,92,93}; return r; } 
+ else if(bulb==31){ int[] r = {94,95,96}; return r; }
+ else if(bulb==32){ int[] r = {97,98,99}; return r; }  
+ else if(bulb==33){ int[] r = {100,101,102}; return r; }  
+ else if(bulb==34){ int[] r = {103,104,105}; return r; }  
+ else if(bulb==35){ int[] r = {106,107,108}; return r; } 
+ else if(bulb==36){ int[] r = {109,110,111}; return r; }
+ else if(bulb==37){ int[] r = {112,113,114}; return r; }  
+ else if(bulb==38){ int[] r = {115,116,117}; return r; }  
+ else if(bulb==39){ int[] r = {118,119,120}; return r; }  
  else {int[] r = {0,0,0}; return r;}
 }
 void setDMX(int bulb, int val1, int val2, int val3){
+  if(bulb < 19){ 
   if(val1 > 255){val1 = 255;}
   if(val2 > 255){val2 = 255;}
   if(val2 > 255){val2 = 255;}
@@ -397,6 +418,7 @@ void setDMX(int bulb, int val1, int val2, int val3){
        dmxOutput.set(mapDMX(bulb)[1],val2); 
        dmxOutput.set(mapDMX(bulb)[2],val3);
      }
+  }
 }
 int calcAmplitude(float[] peaks){
   int tempAmplitude = 0;int avgSize = 0;
