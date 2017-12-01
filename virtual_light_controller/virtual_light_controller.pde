@@ -1,6 +1,5 @@
 // this sketch draws the bulb and change color when sound amplitud changes
 
-//import processing.sound.*;
 import oscP5.*;
 import netP5.*;
 import ddf.minim.*;
@@ -26,14 +25,15 @@ int buffer_size = 1024;  // also sets FFT size (frequency resolution)
 float sample_rate = 44100;
 
 int spectrum_height = 200; // determines range of dB shown
-int legend_height = 20;
-int spectrum_width = 512; // determines how much of spectrum we see
-int legend_width = 40;
+int legend_height = 0;
+int spectrum_width = 480; // determines how much of spectrum we see
+int legend_width = 0;
 
 int engineCalc = 0;
 boolean engineNoise = false;
 boolean windNoise = false;
-
+int avgAmplitude;
+int avgSize = 0;
 /** Lights and server variables **/
 OscP5 oscP5;
 NetAddress nodejsServer;
@@ -56,7 +56,7 @@ String DMXPRO_PORT=Serial.list()[1];//case matters ! on windows port must be upp
 int DMXPRO_BAUDRATE=115000;
 
 void setup(){
-  size(200, 420, P3D);
+  size(200, 480, P3D);
   background(0);
   noStroke();
   frameRate(30);
@@ -89,7 +89,7 @@ void setup(){
   fft1 = new FFT(in.bufferSize(), in.sampleRate());
   fft2 = new FFT(in.bufferSize(), in.sampleRate());
   }else{
-  song = minim.loadFile("../sound-analysis/data/dic17_motor2.aiff");
+  song = minim.loadFile("../sound-analysis/data/dic17_bus.aiff");
   song.loop();
   fft1 = new FFT(song.bufferSize(), song.sampleRate());
   fft2 = new FFT(song.bufferSize(), song.sampleRate());
@@ -123,13 +123,18 @@ void draw() {
     noStroke();
     fill(0, 128, 144); // dim cyan
     engineCalc = int((peaks[2]+peaks[3]+peaks[4])/3);
+    int tempAmplitude = 0;avgSize = 0;
+    for(int i = 0; i < 20; ++i){
+      tempAmplitude += peaks[i];
+      avgSize+=1;
+    }
+    avgAmplitude = tempAmplitude/avgSize;
+    
     if( engineCalc > 45) { engineNoise = true; println("engine db: ", engineCalc);}else{ engineNoise = false;}
     if((peaks[40]+peaks[50]+peaks[peaksize-1])/3 > 5) { windNoise = true; println("windy");}else{ windNoise = false;}
-    println(peaks[1]);
     for(int i = 0; i < peaksize; ++i) { 
     int thisy = spectrum_height - Math.round(peaks[i]);
     if(peaks[i]> 0.0){ 
-      println(i, peaks[i]);
       objectIdentif(i, peaks);
       spectColors(peaks[i], i);
     }
@@ -142,7 +147,25 @@ void draw() {
         if (peaks[i] < 0) { peaks[i] = 0; }
       }
     }
-   
+    stroke(64,192,255);
+    noFill();
+    for(int i = 0; i < spectrum_width; i++)  {
+      // draw the line for frequency band i using dB scale
+      float val = dB_scale*(20*((float)Math.log10(fft1.getBand(i))) + gain);
+      if (fft1.getBand(i) == 0) {   val = -200;   }  // avoid log(0)
+      int y = spectrum_height - Math.round(val);
+      if (y > spectrum_height) { y = spectrum_height; }
+      line(legend_width+i, spectrum_height, legend_width+i, y);
+      // update the peak record
+      // which peak bin are we in?
+      int peaksi = i/binsperband;
+      if (val > peaks[peaksi]) {
+        peaks[peaksi] = val;
+        // reset peak age counter
+        peak_age[peaksi] = 0;
+      }
+    }
+     
     
      // ****
     // LIGHT BEHAVIOUR
@@ -290,11 +313,11 @@ void draw() {
                       tempXpos = 120;
                     }
            
-           int dc = int(map(int(engineCalc), 0, 15, 0, 255)); // Modifies the color with sound amplitude
+           int dc = int(map(int(avgAmplitude), 0, 70, 0, 255)); // Modifies the color with sound amplitude
            bulb = new Bulb(dc,dc,dc, 1, tempXpos, tempYpos, 15);
            bulb.display();
-           setDMX(i,dc,dc,dc);
-           //println(dc, (peaks[2]+peaks[3]+peaks[4])/3);
+           //setDMX(i,dc,dc,dc);
+           println(dc, avgAmplitude);
 
           }
           break;
@@ -350,6 +373,7 @@ void keyPressed() {
     print("option set to empty\n");
     chosenOption = '\n';
   }
+  
   if (key == '1') {
    print("Key pressed: Speed 1\n");
    chosenSpeed = '1';
