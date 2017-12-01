@@ -110,7 +110,7 @@ void setup(){
   peak_age2 = new int[peaksize2];
   
 }
-
+int[] ac;
 int numFrames = 255;  // The number of frames in the animation
 int currentFrame = 0;
 int BULB_NB = 40; // Quantity of bulbs
@@ -141,7 +141,7 @@ void draw() {
          switch(chosenOption){
             // *** CASE A : Alternate strobo between lights  ***
         case 'A': 
-          for (i = 0; i < BULB_NB; i++){ //iterate through the bulbs
+         /* for (i = 0; i < BULB_NB; i++){ //iterate through the bulbs
             
                 //defining the position of bulbs in graph
             tempYpos = i*20+20;
@@ -163,8 +163,23 @@ void draw() {
              }
              bulb.display();
              setDMX(i,cm,cm,cm);
-          }
+          } */
           
+          for (i = 0; i < 20; i++){
+            text(avgAmplitude1, 20, 400);
+            ac[mapDMX(i)[0]] = int(map(avgAmplitude1, 0, 70, 0, 255)); 
+            ac[mapDMX(i)[1]] = int(map(avgAmplitude1, 0, 70, 0, 255)); 
+            ac[mapDMX(i)[2]] = int(map(avgAmplitude1, 0, 70, 0, 255));  // Modifies the color with sound amplitude
+            //setDMX(i,dc,dc,dc);
+          }
+          for (i = 20; i < 40; i++){
+            text(avgAmplitude2, 50, 400);
+            ac[mapDMX(i)[0]] = int(map(avgAmplitude2, 0, 70, 0, 255)); 
+            ac[mapDMX(i)[1]] = int(map(avgAmplitude2, 0, 70, 0, 255)); 
+            ac[mapDMX(i)[2]] = int(map(avgAmplitude2, 0, 70, 0, 255)); // Modifies the color with sound amplitude
+            //setDMX(i,dc,dc,dc);
+          }
+          dmxOutput.set(1,ac);
           break;
            // *** CASE B  //  slow progression ***
          case 'B':
@@ -289,8 +304,7 @@ void draw() {
                       tempYpos = (i-20)*20+20;
                       tempXpos = 120;
                     }
-           
-           int dc = int(map((avgAmplitude1+avgAmplitude1)/2, 0, 70, 0, 255)); // Modifies the color with sound amplitude
+           int dc = int(map((avgAmplitude1+avgAmplitude2)/2, 0, 70, 0, 255)); // Modifies the color with sound amplitude
            bulb = new Bulb(dc,dc,dc, 1, tempXpos, tempYpos, 15);
            bulb.display();
            if(dc > 255){dc = 255;}
