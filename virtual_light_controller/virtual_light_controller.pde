@@ -55,6 +55,15 @@ boolean DMXPRO=true;
 String DMXPRO_PORT=Serial.list()[1];//case matters ! on windows port must be upper cased.
 int DMXPRO_BAUDRATE=115000;
 
+/* GENERAL VARIABLES */
+int ia = 0; //used for modify lights sequence
+int spd = 1; // used for speed
+PImage gif;
+int numFrames = 255;  // The number of frames in the animation
+int currentFrame = 0;
+int BULB_NB = 40; // Quantity of bulbs
+Bulb bulb; 
+
 void setup(){
   size(200, 480, P3D);
   background(0);
@@ -110,11 +119,7 @@ void setup(){
   peak_age2 = new int[peaksize2];
   
 }
-int ia = 0; 
-int numFrames = 255;  // The number of frames in the animation
-int currentFrame = 0;
-int BULB_NB = 40; // Quantity of bulbs
-Bulb bulb; 
+
 void draw() { 
     background(125,255,125);
     // ****

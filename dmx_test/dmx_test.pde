@@ -55,6 +55,14 @@ boolean DMXPRO=true;
 String DMXPRO_PORT=Serial.list()[1];//case matters ! on windows port must be upper cased.
 int DMXPRO_BAUDRATE=115000;
 
+int ia = 0; //used for modify lights sequence
+int spd = 1; // used for speed
+Animation gif;
+int numFrames = 255;  // The number of frames in the animation
+int currentFrame = 0;
+int BULB_NB = 40; // Quantity of bulbs
+Bulb bulb; 
+
 void setup(){
   size(200, 480, P3D);
   background(0);
@@ -109,12 +117,11 @@ void setup(){
   peaks2 = new float[peaksize2];
   peak_age2 = new int[peaksize2];
   
+  /* GIF Processing */
+  gif = new Animation("frames/", 14);
+  
 }
-int ia = 0; 
-int numFrames = 255;  // The number of frames in the animation
-int currentFrame = 0;
-int BULB_NB = 40; // Quantity of bulbs
-Bulb bulb; 
+
 void draw() { 
     background(125,255,125);
     // ****
@@ -233,14 +240,21 @@ void draw() {
                
              } */
              /* colors from blue to red */
+             spd=80;spd = (int(map(avgAmplitude2, 5, 70, 200, 80)) + int(map(avgAmplitude1, 5, 70, 80, 200)))/2; //modifies speed regarding amplitude
+             if(spd < 80){ spd=80; }else if(spd>200){spd=200;}
+             float iatoa = map(ia,0,5,0.0,1.0);
              for (i = 0; i < BULB_NB; i++){
-               int dm = int(map(avgAmplitude1, 0, 70, 0, 255)); if(dm>255){dm=255;}
-               text("amp 1: "+dm, 20,20);
-               int dm2 = int(map(avgAmplitude2, 0, 70, 0, 255)); if(dm2>255){dm2=255;}
-               text("amp  2: "+dm, 100,20);
+               int dm = int(map(avgAmplitude2, 5, 70, 1, 255)); 
+               dm = int(dm*iatoa);
+               if(dm>255){dm=255;}else if(dm<1){dm=1;}
+               int dm2 = int(map(avgAmplitude1, 5, 70, 1, 255)); 
+               dm2 = int(dm2*iatoa);
+               if(dm2>255){dm2=255;}else if(dm2<1){dm2=1;}
                setDMX(i,dm,0,dm2);
+               println(dm,dm2,spd);
              }
-
+             delay(spd); //modifies the speed
+             ia++; if(ia == 5)ia = 0;
           break;
           // *** CASE C : Testing entire chain progression ***
           case 'C':
@@ -259,7 +273,7 @@ void draw() {
                  bulb = new Bulb(cm,cm,cm, 1, tempXpos, tempYpos, 15);
                  bulb.display();
               } */
-              
+              /* Falling ball
                    i++; if(i>39){i=0;} 
                       //defining the position of bulbs in graph
                   tempYpos = i*20+20;
@@ -277,6 +291,11 @@ void draw() {
                  bulb = new Bulb(cm,cm,cm, 1, tempXpos, tempYpos, 15);
                  bulb.display();
                  setDMX(i,a,a,a);
+              */ 
+              for (int i = 0; i < BULB_NB; i++){
+                int gifpc = gif.getImagePixels()[i];
+                setDMX(i,int(red(gifpc)),int(green(gifpc)),int(blue(gifpc)));
+              }
               
           break;
           // *** CASE D : ***
@@ -305,7 +324,7 @@ void draw() {
               }
              */
              // Circular light
-             int spd = 1; spd = int(map((avgAmplitude1+avgAmplitude2)/2, 5, 70, 300, 1)); //modifies speed regarding amplitude
+             spd = 1; spd = int(map((avgAmplitude1+avgAmplitude2)/2, 5, 70, 300, 1)); //modifies speed regarding amplitude
              if(spd < 1){ spd=1; }else if(spd>300){spd=300;}
              float tocol= map((avgAmplitude1+avgAmplitude2)/2, 5, 70, 0.0, 1.0);
              println(tocol);
@@ -619,6 +638,35 @@ void spectColors(float fft, int i){ // separate bands in buffer and draw in colo
     if(fft > 65){ // if buffer_size surpasses a threshold
       fill(255,0,0);
     }
+}
+class Animation {
+  PImage[] images;
+  int imageCount;
+  int frame;
+  
+  Animation(String imagePrefix, int count) {
+    imageCount = count;
+    images = new PImage[imageCount];
+
+    for (int i = 0; i < imageCount; i++) {
+      // Use nf() to number format 'i' into four digits
+      String filename = imagePrefix + nf(i, 2) + ".gif";
+      images[i] = loadImage(filename);
+    }
+  }
+
+  void getImage(float xpos, float ypos) {
+    frame = (frame+1) % imageCount;
+    image(images[frame], xpos, ypos);
+  }
+   int[] getImagePixels() {
+    frame = (frame+1) % imageCount;
+    images[frame].resize(20,2);
+    return images[frame].pixels;
+  }
+  int getWidth() {
+    return images[0].width;
+  }
 }
  void receive(char s){
    receivedString=s;
