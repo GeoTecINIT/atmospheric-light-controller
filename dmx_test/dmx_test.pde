@@ -132,7 +132,6 @@ void draw() {
     drawSpecto(peaks1, peaksize1, peak_age1, fft1);
     drawSpecto(peaks2, peaksize2, peak_age2, fft2); 
     
-    
      // ****
     // LIGHT BEHAVIOUR
     // ****
@@ -142,11 +141,83 @@ void draw() {
          switch(chosenOption){
             // *** CASE A : Alternate strobo between lights  ***
         case 'A': 
-  
+         /* for (i = 0; i < BULB_NB; i++){ //iterate through the bulbs
+            
+                //defining the position of bulbs in graph
+            tempYpos = i*20+20;
+            tempXpos = 80;
+            if(i>19){ //change position values to draw two lines
+              tempYpos = (i-20)*20+20;
+              tempXpos = 120;
+            }
+            
+            if(i% 2 == 0){
+              cm = (millis() + 2500) % 255; 
+              bulb = new Bulb(cm,cm,cm, 1, tempXpos, tempYpos, 15); 
+            setDMX(i,cm,cm,cm);
+            }
+             else{
+             cm = millis() % 255;
+             bulb = new Bulb(cm,cm,cm, 1, tempXpos, tempYpos, 15); 
+             setDMX(i,cm,cm,cm);
+             }
+             bulb.display();
+             setDMX(i,cm,cm,cm);
+          } */
+          
+          /* uses amplitude to show each of the imputs to white 
+         for (i = 0; i < 20; i++){
+            int dm = int(map(avgAmplitude1, 0, 70, 0, 255)); if(dm>255){dm=255;}
+            setDMX(i,dm,dm,dm);
+             tempYpos = i*20+20;
+             tempXpos = 80;
+             bulb = new Bulb(dm,dm,dm, 1, tempXpos, tempYpos, 15);
+             bulb.display();
+          }
+          for (i = 20; i < 40; i++){
+            int dm2 = int(map(avgAmplitude2, 0, 70, 0, 255)); if(dm2>255){dm2=255;}
+            setDMX(i,dm2,dm2,dm2);
+             tempYpos = (i-20)*20+20;
+             tempXpos = 120;
+             bulb = new Bulb(dm2,dm2,dm2, 1, tempXpos, tempYpos, 15);
+             bulb.display();
+          }*/
+          /* maps light to amplitude each line */
+          color from = color(0, 0, 255);
+          color to = color(255, 0, 0);
+          color theCol = color(0,0,0);
+          int am = int(map(avgAmplitude1, 0, 70, 0, BULB_NB/2-1));
+          
+          for (i = 0; i < BULB_NB/2; i++){
+            theCol = color(0,0,0);
+              if(i < am){ //col = 255;
+               float tocol = map(i, 0 , BULB_NB/2, 0.0 , 1.0); //determines the color for the lerp
+                theCol = lerpColor(from, to, tocol);
+               }
+             setDMX(i,int(red(theCol)),int(green(theCol)),int(blue(theCol)));
+             tempYpos = i*20+20;
+             tempXpos = 80;
+             bulb = new Bulb(int(red(theCol)),int(green(theCol)),int(blue(theCol)), 1, tempXpos, tempYpos, 15);
+             bulb.display();
+          }
+          int am2 = int(map(avgAmplitude2, 0, 70, BULB_NB-1, BULB_NB/2-1)); // La segunda linea va invertida (para atras)
+          for (i = BULB_NB-1; i > BULB_NB/2-1; i--){
+           from = color(0, 255, 0);
+           theCol = color(0,0,0);
+              if(i > am2){ //col = 255;
+               float tocol = map(i, BULB_NB, BULB_NB/2, 0.0 , 1.0); //determines the color for the lerp
+                theCol = lerpColor(from, to, tocol);
+               }
+             setDMX(i,int(red(theCol)),int(green(theCol)),int(blue(theCol)));
+             tempYpos = (i-BULB_NB/2)*20+20;
+             tempXpos = 120;
+             bulb = new Bulb(int(red(theCol)),int(green(theCol)),int(blue(theCol)), 1, tempXpos, tempYpos, 15);
+             bulb.display();
+          }
           break;
            // *** CASE B  //  slow progression ***
          case 'B':
-             for (i = 0; i < BULB_NB; i++){ //iterate through the bulbs
+           /*  for (i = 0; i < BULB_NB; i++){ //iterate through the bulbs
                 
                     //defining the position of bulbs in graph
                 tempYpos = i*20+20;
@@ -160,6 +231,14 @@ void draw() {
                bulb.display();
                setDMX(i,cm,cm,cm);
                
+             } */
+             /* colors from blue to red */
+             for (i = 0; i < BULB_NB; i++){
+               int dm = int(map(avgAmplitude1, 0, 70, 0, 255)); if(dm>255){dm=255;}
+               text("amp 1: "+dm, 20,20);
+               int dm2 = int(map(avgAmplitude2, 0, 70, 0, 255)); if(dm2>255){dm2=255;}
+               text("amp  2: "+dm, 100,20);
+               setDMX(i,dm,0,dm2);
              }
 
           break;
@@ -194,17 +273,42 @@ void draw() {
                   i = i+1; //velocidad
                   //cm = int(map(i, 0, 40, 0, 255));
                  //cm = (a*40)%255;
+                 //println(a,i,cm, frameRate);
                  bulb = new Bulb(cm,cm,cm, 1, tempXpos, tempYpos, 15);
                  bulb.display();
                  setDMX(i,a,a,a);
               
           break;
-          // *** CASE D : Parallel chain progression  ***
+          // *** CASE D : ***
           case 'D':
-              // Circular light
+           /* Parallel chain progression 
+              for (i = 0; i < BULB_NB; i++){ //iterate through the bulbs
+                      //defining the position of bulbs in graph
+                 tempYpos = i*20+20;
+                 tempXpos = 80;
+                  if(i>19){ //change position values to draw two lines
+                    tempYpos = (i-20)*20+20;
+                    tempXpos = 120;
+                  }
+                println(frameRate);
+                if(i >= BULB_NB/2){
+                  cm = (a*(i-BULB_NB/2))%255; 
+                  bulb = new Bulb(cm,cm,cm, 1, tempXpos, tempYpos, 15); 
+                  setDMX(i,cm,cm,cm);
+                  }
+                 else{ 
+                  cm = (a*i)%255;
+                bulb = new Bulb(cm,cm,cm, 1, tempXpos, tempYpos, 15); 
+                setDMX(i,cm,cm,cm);
+              }
+                bulb.display();
+              }
+             */
+             // Circular light
              int spd = 1; spd = int(map((avgAmplitude1+avgAmplitude2)/2, 5, 70, 300, 1)); //modifies speed regarding amplitude
              if(spd < 1){ spd=1; }else if(spd>300){spd=300;}
              float tocol= map((avgAmplitude1+avgAmplitude2)/2, 5, 70, 0.0, 1.0);
+             println(tocol);
              int spdcol = lerpColor(color(0, 128, 105), color(255,10,5), tocol);
              int spdcol1 = lerpColor(color(0, 98, 75), color(155,5,0), tocol);
              int spdcol2 = lerpColor(color(0, 68, 45), color(55,0,0), tocol);
@@ -267,10 +371,10 @@ void draw() {
                       tempYpos = (i-20)*20+20;
                       tempXpos = 120;
                     }
-           int dc = int(map((avgAmplitude1+avgAmplitude2)/2, 0, 70, 0, 255)); // Modifies the color with sound amplitude
+           int dc = int(map((avgAmplitude1+avgAmplitude2)/2, 5, 70, 0, 255)); // Modifies the color with sound amplitude
            bulb = new Bulb(dc,dc,dc, 1, tempXpos, tempYpos, 15);
            bulb.display();
-           if(dc > 255){dc = 255;}
+           if(dc > 255){dc = 255;}else if(dc < 1){dc=1;}
            setDMX(i,dc,dc,dc);
            dmxOutput.set(i,dc); //for some reason this should be here (DMX doesnt work otherwise)
           }
@@ -332,7 +436,6 @@ void keyPressed() {
     chosenOption = 'Z';
   }else if (key == 'n' || key == 'N') {
     print("option set to empty\n");
-    resetLights();
     chosenOption = '\n';
   }
   
@@ -437,9 +540,9 @@ void drawSpecto(float[] peaks, int peaksize, int[] peak_age, FFT fft){
     int thisy = spectrum_height - Math.round(peaks[i]);
     if(peaks[i]> 0.0){ 
       objectIdentif(i, peaks);
-//      spectColors(peaks[i], i);
+      spectColors(peaks[i], i);
     }
-//      rect(legend_width+binsperband*i, thisy, binsperband, spectrum_height-thisy);
+      rect(legend_width+binsperband*i, thisy, binsperband, spectrum_height-thisy);
       // update decays
      if (peak_age[i] < peak_hold_time) {
         ++peak_age[i];
@@ -454,9 +557,9 @@ void drawSpecto(float[] peaks, int peaksize, int[] peak_age, FFT fft){
       // draw the line for frequency band i using dB scale
       float val = dB_scale*(20*((float)Math.log10(fft.getBand(i))) + gain);
       if (fft.getBand(i) == 0) {   val = -200;   }  // avoid log(0)
-//      int y = spectrum_height - Math.round(val);
-//      if (y > spectrum_height) { y = spectrum_height; }
-//      line(legend_width+i, spectrum_height, legend_width+i, y);
+      int y = spectrum_height - Math.round(val);
+      if (y > spectrum_height) { y = spectrum_height; }
+      line(legend_width+i, spectrum_height, legend_width+i, y);
       // update the peak record
       // which peak bin are we in?
       int peaksi = i/binsperband;
