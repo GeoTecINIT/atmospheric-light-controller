@@ -61,8 +61,9 @@ Animation gif;
 int numFrames = 255;  // The number of frames in the animation
 int currentFrame = 0;
 int BULB_NB = 40; // Quantity of bulbs
-Bulb bulb; 
-
+Bulb bulb;
+int[] list = new int[BULB_NB];
+int[] rlist = new int[BULB_NB];
 void setup(){
   size(200, 480, P3D);
   background(0);
@@ -119,7 +120,10 @@ void setup(){
   
   /* GIF Processing */
   gif = new Animation("frames/", 14);
-  
+  for (i = 0; i < BULB_NB; i++){
+    list[i] = i;
+  }
+  rlist =reverse(list);
 }
 
 void draw() { 
@@ -293,7 +297,10 @@ void draw() {
                  setDMX(i,a,a,a);
               */ 
               for (int i = 0; i < BULB_NB; i++){
-                int gifpc = gif.getImagePixels()[i];
+                int gifi = i; 
+                
+                if(i > BULB_NB/2-2){gifi = rlist[i];}
+                int gifpc = gif.getImagePixels()[gifi];
                 setDMX(i,int(red(gifpc)),int(green(gifpc)),int(blue(gifpc)));
               }
               

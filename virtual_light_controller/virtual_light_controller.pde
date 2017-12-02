@@ -58,11 +58,13 @@ int DMXPRO_BAUDRATE=115000;
 /* GENERAL VARIABLES */
 int ia = 0; //used for modify lights sequence
 int spd = 1; // used for speed
-PImage gif;
+Animation gif;
 int numFrames = 255;  // The number of frames in the animation
 int currentFrame = 0;
 int BULB_NB = 40; // Quantity of bulbs
 Bulb bulb; 
+int[] list = new int[BULB_NB];
+int[] rlist = new int[BULB_NB];
 
 void setup(){
   size(200, 480, P3D);
@@ -118,6 +120,13 @@ void setup(){
   peaks2 = new float[peaksize2];
   peak_age2 = new int[peaksize2];
   
+  /* GIF Processing */
+  gif = new Animation("frames/", 14);
+  for (i = 0; i < BULB_NB; i++){
+    list[i] = i;
+  }
+  rlist =reverse(list);
+  
 }
 
 void draw() { 
@@ -145,71 +154,79 @@ void draw() {
     a++; if(a>255){a=0;} // A is going trough color spectrum
     currentFrame = (currentFrame+1) % numFrames;  // Use % to cycle through frames
          switch(chosenOption){
-            // *** CASE A : Alternate strobo between lights  ***
+            // *** CASE A  ***
         case 'A': 
-  
+         /* maps light to amplitude each line */
+                color from = color(0, 0, 255);
+                color to = color(255, 0, 0);
+                color theCol = color(0,0,0);
+                int am = int(map(avgAmplitude1, 0, 70, 0, BULB_NB/2-1));
+                
+                for (i = 0; i < BULB_NB/2; i++){
+                  theCol = color(0,0,0);
+                    if(i < am){ //col = 255;
+                     float tocol = map(i, 0 , BULB_NB/2, 0.0 , 1.0); //determines the color for the lerp
+                      theCol = lerpColor(from, to, tocol);
+                     }
+                   setDMX(i,int(red(theCol)),int(green(theCol)),int(blue(theCol)));
+                   tempYpos = i*20+20;
+                   tempXpos = 80;
+                   bulb = new Bulb(int(red(theCol)),int(green(theCol)),int(blue(theCol)), 1, tempXpos, tempYpos, 15);
+                   bulb.display();
+                }
+                int am2 = int(map(avgAmplitude2, 0, 70, BULB_NB-1, BULB_NB/2-1)); // La segunda linea va invertida (para atras)
+                for (i = BULB_NB-1; i > BULB_NB/2-1; i--){
+                 from = color(0, 255, 0);
+                 theCol = color(0,0,0);
+                    if(i > am2){ //col = 255;
+                     float tocol = map(i, BULB_NB, BULB_NB/2, 0.0 , 1.0); //determines the color for the lerp
+                      theCol = lerpColor(from, to, tocol);
+                     }
+                   setDMX(i,int(red(theCol)),int(green(theCol)),int(blue(theCol)));
+                   tempYpos = (i-BULB_NB/2)*20+20;
+                   tempXpos = 120;
+                   bulb = new Bulb(int(red(theCol)),int(green(theCol)),int(blue(theCol)), 1, tempXpos, tempYpos, 15);
+                   bulb.display();
+                }
           break;
            // *** CASE B  //  slow progression ***
          case 'B':
-             for (i = 0; i < BULB_NB; i++){ //iterate through the bulbs
-                
-                    //defining the position of bulbs in graph
-                tempYpos = i*20+20;
-                tempXpos = 80;
-                if(i>19){ //change position values to draw two lines
-                  tempYpos = (i-20)*20+20;
-                  tempXpos = 120;
-                }
-               cm = (a+i*39)%255;
-               bulb = new Bulb(cm,cm,cm, 1, tempXpos, tempYpos, 15);
-               bulb.display();
-               setDMX(i,cm,cm,cm);
-               
+             /* colors from blue to red */
+             spd=80;spd = (int(map(avgAmplitude2, 5, 70, 200, 80)) + int(map(avgAmplitude1, 5, 70, 80, 200)))/2; //modifies speed regarding amplitude
+             if(spd < 80){ spd=80; }else if(spd>200){spd=200;}
+             float iatoa = map(ia,0,5,0.0,1.0);
+             for (i = 0; i < BULB_NB; i++){
+               int dm = int(map(avgAmplitude2, 5, 70, 1, 255)); 
+               dm = int(dm*iatoa);
+               if(dm>255){dm=255;}else if(dm<1){dm=1;}
+               int dm2 = int(map(avgAmplitude1, 5, 70, 1, 255)); 
+               dm2 = int(dm2*iatoa);
+               if(dm2>255){dm2=255;}else if(dm2<1){dm2=1;}
+               setDMX(i,dm,0,dm2);
+               println(dm,dm2,spd);
              }
+             delay(spd); //modifies the speed
+             ia++; if(ia == 5)ia = 0;
 
           break;
           // *** CASE C : Testing entire chain progression ***
           case 'C':
-            /*  OLD STUFFF
-                  for (int i = 0; i < BULB_NB; i++){ //iterate through the bulbs
-                  
-                      //defining the position of bulbs in graph
-                  float tempYpos = i*20+20;
-                  float tempXpos = 80;
-                  if(i>19){ //change position values to draw two lines
-                    tempYpos = (i-20)*20+20;
-                    tempXpos = 120;
-                  }
-                 cm = (a*i)%255;
-                 println(a,i,cm, frameRate);
-                 bulb = new Bulb(cm,cm,cm, 1, tempXpos, tempYpos, 15);
-                 bulb.display();
-              } */
-              
-                   i++; if(i>39){i=0;} 
-                      //defining the position of bulbs in graph
-                  tempYpos = i*20+20;
-                  tempXpos = 80;
-                  if(i>19){ //change position values to draw two lines
-                    tempYpos = (i-20)*20+20;
-                    tempXpos = 120;
-                  }
-                 //cm = (currentFrame+offset) % numFrames; offset+=2;
-                  cm = int(map(a, 0, 40, 0, 255));
-                  i = i+1; //velocidad
-                  //cm = int(map(i, 0, 40, 0, 255));
-                 //cm = (a*40)%255;
-                 bulb = new Bulb(cm,cm,cm, 1, tempXpos, tempYpos, 15);
-                 bulb.display();
-                 setDMX(i,a,a,a);
+            for (int i = 0; i < BULB_NB; i++){
+                int gifi = i; 
+                
+                if(i > BULB_NB/2-2){gifi = rlist[i];}
+                int gifpc = gif.getImagePixels()[gifi];
+                setDMX(i,int(red(gifpc)),int(green(gifpc)),int(blue(gifpc)));
+              }
               
           break;
           // *** CASE D : Parallel chain progression  ***
           case 'D':
               // Circular light
-             int spd = 1; spd = int(map((avgAmplitude1+avgAmplitude2)/2, 5, 70, 300, 1)); //modifies speed regarding amplitude
+             spd = 1; spd = int(map((avgAmplitude1+avgAmplitude2)/2, 5, 70, 300, 1)); //modifies speed regarding amplitude
              if(spd < 1){ spd=1; }else if(spd>300){spd=300;}
              float tocol= map((avgAmplitude1+avgAmplitude2)/2, 5, 70, 0.0, 1.0);
+             println(tocol);
              int spdcol = lerpColor(color(0, 128, 105), color(255,10,5), tocol);
              int spdcol1 = lerpColor(color(0, 98, 75), color(155,5,0), tocol);
              int spdcol2 = lerpColor(color(0, 68, 45), color(55,0,0), tocol);
@@ -521,6 +538,35 @@ void spectColors(float fft, int i){ // separate bands in buffer and draw in colo
     if(fft > 65){ // if buffer_size surpasses a threshold
       fill(255,0,0);
     }
+}
+class Animation {
+  PImage[] images;
+  int imageCount;
+  int frame;
+  
+  Animation(String imagePrefix, int count) {
+    imageCount = count;
+    images = new PImage[imageCount];
+
+    for (int i = 0; i < imageCount; i++) {
+      // Use nf() to number format 'i' into four digits
+      String filename = imagePrefix + nf(i, 2) + ".gif";
+      images[i] = loadImage(filename);
+    }
+  }
+
+  void getImage(float xpos, float ypos) {
+    frame = (frame+1) % imageCount;
+    image(images[frame], xpos, ypos);
+  }
+   int[] getImagePixels() {
+    frame = (frame+1) % imageCount;
+    images[frame].resize(20,2);
+    return images[frame].pixels;
+  }
+  int getWidth() {
+    return images[0].width;
+  }
 }
  void receive(char s){
    receivedString=s;
