@@ -76,7 +76,8 @@ $(function() {
 			//if(inRoom == true) {
 				//$('#timer').html(Math.floor((data.countdown/60) << 0)+':'+data.countdown);
 				//}else{
-			$counter.children('p').children('span').html(Math.floor((data.countdown/60) << 0)+':'+data.countdown);
+
+			$counter.children('p').children('span').html(Math.floor((data.countdown/60) << 0)+':'+data.countdown - Math.floor((data.countdown % 60));
 				//}
 			// 
 		});
