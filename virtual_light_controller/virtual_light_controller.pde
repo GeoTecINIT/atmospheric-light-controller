@@ -11,7 +11,7 @@ AudioPlayer song;
 boolean soundIn = true;
 /** SOUND VARIABLES **/
 
-float[] peaks1, peaks2;
+float[] peaks1, peaks2;  //acumulates the peak of each band
 int peak_hold_time = 10;  // how long before peak decays
 int[] peak_age1, peak_age2;  // tracks how long peak has been stable, before decaying
 
@@ -29,42 +29,42 @@ int legend_height = 0;
 int spectrum_width = 480; // determines how much of spectrum we see
 int legend_width = 0;
 
-int engineCalc = 0;
-boolean engineNoise = false;
-boolean windNoise = false;
-int avgAmplitude1, avgAmplitude2;
+int engineCalc = 0; // calculates the noise of a motor engine
+boolean engineNoise = false; //active if it there is an engine noise
+boolean windNoise = false; //active if it there is a wind noise
+int avgAmplitude1, avgAmplitude2; // stores average amplitude for each mic
 
 /** Lights and server variables **/
 OscP5 oscP5;
 NetAddress nodejsServer;
-char receivedString;
-char chosenOption; 
-char chosenSpeed; 
-int a = 0;
-int cm;
-int i;
-float tempYpos;
-float tempXpos;
+char receivedString; // string received by osc/node server
+char chosenOption;  // the mode chosen by user
+char chosenSpeed; // the speed choiced (only in background, changes timeframe, not the delay on animation
+int a = 0; // used to increase color to 255 (not in use)
+int cm; // ColorMode used to send independent color to lights
+int i; //for iteration
+float tempYpos; // position to draw lights
+float tempXpos; // position to draw lights
 
 // DMX Libraries and variables
 import dmxP512.*;
 import processing.serial.*;
 DmxP512 dmxOutput;
-int universeSize=120;
+int universeSize=120; // universe (lights per RGB chanels)
 boolean DMXPRO=true;
 String DMXPRO_PORT=Serial.list()[1];//case matters ! on windows port must be upper cased.
 int DMXPRO_BAUDRATE=115000;
 
 /* GENERAL VARIABLES */
-int ia = 0; //used for modify lights sequence
-int spd = 1; // used for speed
-Animation gif;
+int ia = 0; //used for modify lights sequence varies by mode
+int spd = 1; // used for speed by adding delay on sending signal to DMX
+Animation gif; // animated GIF class
 int numFrames = 255;  // The number of frames in the animation
-int currentFrame = 0;
+int currentFrame = 0; // to store framerate (related to chosenSpeed
 int BULB_NB = 40; // Quantity of bulbs
-Bulb bulb; 
-int[] list = new int[BULB_NB];
-int[] rlist = new int[BULB_NB];
+Bulb bulb;  //bulb class
+int[] list = new int[BULB_NB]; //creates a list of bulbs to access
+int[] rlist = new int[BULB_NB]; //creates an inversed list of bulbs
 
 void setup(){
   size(200, 480, P3D);
@@ -76,7 +76,7 @@ void setup(){
   if(DMXPRO){dmxOutput=new DmxP512(this,universeSize,true);
   dmxOutput.setupDmxPro(DMXPRO_PORT);}
   
-  /* start oscP5, listening for incoming messages at port 12000 */
+  /* start oscP5, listening for incoming messages at port 3333 */
   oscP5 = new OscP5(this,3333);
   
   /* myRemoteLocation is a NetAddress. a NetAddress takes 2 parameters,
@@ -121,11 +121,13 @@ void setup(){
   peak_age2 = new int[peaksize2];
   
   /* GIF Processing */
-  gif = new Animation("frames/", 14);
+  gif = new Animation("frames/", 14); //recovers the animated GIF
+  
+  // push bulbs to list
   for (i = 0; i < BULB_NB; i++){
     list[i] = i;
   }
-  rlist =reverse(list);
+  rlist =reverse(list); //reverses the list
   
 }
 
@@ -150,13 +152,12 @@ void draw() {
      // ****
     // LIGHT BEHAVIOUR
     // ****
-    text(avgAmplitude1, 20, 400); text(avgAmplitude2, 50, 400);
+    text(avgAmplitude1, 20, 400); text(avgAmplitude2, 50, 400);  // prints each amplitude
     //a++; if(a>255){a=0;} // A is going trough color spectrum
     currentFrame = (currentFrame+1) % numFrames;  // Use % to cycle through frames
          switch(chosenOption){
-            // *** CASE A  ***
+            // *** CASE A  ***  maps light to amplitude each line 
         case 'A': 
-         /* maps light to amplitude each line */
                 color from = color(0, 0, 255);
                 color to = color(255, 0, 0);
                 color theCol = color(0,0,0);
@@ -189,7 +190,7 @@ void draw() {
                    bulb.display();
                 }
           break;
-           // *** CASE B  //  slow progression ***
+           // *** CASE B  //  heart-beat ***
          case 'B':
              /* colors from blue to red */
               if(ia > 4)ia = 0;
@@ -210,18 +211,22 @@ void draw() {
              ia++;
 
           break;
-          // *** CASE C : Testing entire chain progression ***
+          // *** CASE C : animated GIF ***
           case 'C':
+              spd = 1; spd = int(map((avgAmplitude1+avgAmplitude2)/2, 5, 70, 1, 15)); //modifies speed regarding amplitude
+             if(spd < 1){ spd=1; }
+             if(spd>15){spd=15;}
             for (int i = 0; i < BULB_NB; i++){
                 int gifi = i; 
-                
+                delay(spd); 
                 if(i > BULB_NB/2-2){gifi = rlist[i];}
                 int gifpc = gif.getImagePixels()[gifi];
                 setDMX(i,int(red(gifpc)),int(green(gifpc)),int(blue(gifpc)));
               }
+              println(spd);
               
           break;
-          // *** CASE D : Parallel chain progression  ***
+          // *** CASE D : snake mode  ***
           case 'D':
               // Circular light
              if(ia == BULB_NB){ia = 0;}
