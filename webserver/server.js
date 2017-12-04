@@ -17,7 +17,7 @@ var theUser; // the user session to save in db
 var theRoom = 'control room'; // the control room
 var roomEmpty = true; // if the room is empty, used to check before allow access
 var roomUser = {userid: '', socketid: ''}; // Who is in the room
-var maxTime = 20; //set maximum seconds of practice 60 = 1m
+var maxTime = 200; //set maximum seconds of practice 60 = 1m
 var countdown = maxTime;  // the countdown that is send to 
 var countLive = false; // if it is counting
 var inter; // the count interval (unique for all the interface)
@@ -79,8 +79,8 @@ var sES = schedule.scheduleJob(sRule, function(){
 // END
 var fRule = new schedule.RecurrenceRule();
 fRule.dayOfWeek = [0, new schedule.Range(0, 5)]; // 0 (MONDAY) to 5(SATURDAY)
-fRule.hour = 16; //23:30hs
-fRule.minute = 11;
+fRule.hour = 23; //23:30hs
+fRule.minute = 30;
  
 var fES = schedule.scheduleJob(fRule, function(){
 	 var time = new Date(Date.now());
