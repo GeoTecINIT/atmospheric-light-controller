@@ -151,7 +151,7 @@ void draw() {
     // LIGHT BEHAVIOUR
     // ****
     text(avgAmplitude1, 20, 400); text(avgAmplitude2, 50, 400);
-    a++; if(a>255){a=0;} // A is going trough color spectrum
+    //a++; if(a>255){a=0;} // A is going trough color spectrum
     currentFrame = (currentFrame+1) % numFrames;  // Use % to cycle through frames
          switch(chosenOption){
             // *** CASE A  ***
@@ -192,7 +192,8 @@ void draw() {
            // *** CASE B  //  slow progression ***
          case 'B':
              /* colors from blue to red */
-             a=0; spd=80;spd = (int(map(avgAmplitude2, 5, 70, 200, 80)) + int(map(avgAmplitude1, 5, 70, 80, 200)))/2; //modifies speed regarding amplitude
+              if(ia > 4)ia = 0;
+             spd=80;spd = (int(map(avgAmplitude2, 5, 70, 200, 80)) + int(map(avgAmplitude1, 5, 70, 80, 200)))/2; //modifies speed regarding amplitude
              if(spd < 80){ spd=80; }else if(spd>200){spd=200;}
              float iatoa = map(ia,0,5,0.0,1.0);
              for (i = 0; i < BULB_NB; i++){
@@ -206,7 +207,7 @@ void draw() {
                //println(dm,dm2,spd);
              }
              delay(spd); //modifies the speed
-             ia++; if(ia == 5)ia = 0;
+             ia++;
 
           break;
           // *** CASE C : Testing entire chain progression ***
@@ -223,8 +224,10 @@ void draw() {
           // *** CASE D : Parallel chain progression  ***
           case 'D':
               // Circular light
-             a=0;spd = 1; spd = int(map((avgAmplitude1+avgAmplitude2)/2, 5, 70, 300, 1)); //modifies speed regarding amplitude
-             if(spd < 1){ spd=1; }else if(spd>300){spd=300;}
+             if(ia == BULB_NB){ia = 0;}
+             spd = 1; spd = int(map((avgAmplitude1+avgAmplitude2)/2, 5, 70, 300, 1)); //modifies speed regarding amplitude
+             if(spd < 1){ spd=1; }
+             if(spd>300){spd=300;}
              float tocol= map((avgAmplitude1+avgAmplitude2)/2, 5, 70, 0.0, 1.0);
              int spdcol = lerpColor(color(0, 128, 105), color(255,10,5), tocol);
              int spdcol1 = lerpColor(color(0, 98, 75), color(155,5,0), tocol);
@@ -241,9 +244,9 @@ void draw() {
                  setDMX(i,0,0,0);
                }
              }
-             
+             //println(spd, a, avgAmplitude1+avgAmplitude2, spdcol, spdcol1, spdcol2);
              delay(spd); //modifies the speed
-             ia++; if(ia == BULB_NB)ia = 0;
+             ia++; 
           break;
           // *** CASE X: LIGHTS TURNED OFF ***
           case 'X':
@@ -326,33 +329,33 @@ void resetLights(){
 // for changing modes manually
 void keyPressed() {
   if (key == 'a' || key == 'A') {
-   print("Key pressed: option A\n");
+   println("Key pressed: option A\n");
    resetLights();
    chosenOption = 'A';
   } else if (key == 'b' || key == 'B') {
-    print("Key pressed: option B\n");
+    println("Key pressed: option B\n");
     resetLights();
     chosenOption = 'B';
   } else if (key == 'c' || key == 'C') {
-    print("Key pressed: option C\n");
+    println("Key pressed: option C\n");
     resetLights();
     chosenOption = 'C';
   }else if (key == 'd' || key == 'D') {
-    print("Key pressed: option D\n");
+    println("Key pressed: option D\n");
     resetLights();
     chosenOption = 'D';
   }else if (key == 'e' || key == 'E') {
-    print("Key pressed: option E\n");
+    println("Key pressed: option E\n");
     resetLights();
     chosenOption = 'E';
   }else if (key == 'x' || key == 'X') {
-    print("Key pressed: option X\n");
+    println("Key pressed: option X\n");
     chosenOption = 'X';
   }else if (key == 'z' || key == 'Z') {
-    print("Key pressed: option Z\n");
+    println("Key pressed: option Z\n");
     chosenOption = 'Z';
   }else if (key == 'n' || key == 'N') {
-    print("option set to empty\n");
+    println("option set to empty\n");
     resetLights();
     chosenOption = '\n';
   }
