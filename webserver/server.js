@@ -48,13 +48,13 @@ MongoClient.connect(MongoUrl, function(err, db) {
   console.log("Connected successfully to mongodb server");
         
 	  db.createCollection("vals", function(err, res) {
-	      if (err) console.log(res.errmsg);
+	      if (err) console.log(err);
 	    });
 	  db.createCollection("logs", function(err, res) {
-	        if (err) console.log(res.errmsg);
+	        if (err) console.log(err);
 	     });
-		db.createCollection("energysaver", function(err, res) {
-		  if (err) console.log(res.errmsg);
+	 db.createCollection("energysaver", function(err, res) {
+		  if (err) console.log(err);
 		  });
 		  
   
@@ -178,8 +178,8 @@ console.log('User deleted:'+req.session_state.username);
   res.redirect('/');
 });
 
-//nodejs server listens to msgs on port 8080
-var server = server.listen(8080);
+//nodejs server listens to msgs on port 80
+var server = server.listen(80);
 
 // *** //
 // Socket configuration

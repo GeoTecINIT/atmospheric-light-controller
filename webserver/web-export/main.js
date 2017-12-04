@@ -1,5 +1,5 @@
 $(function() {
-	var socket = io.connect('http://' + location.hostname + ':8080'); 
+	var socket = io.connect('http://' + location.hostname + ':80'); 
 	var roomEmpty = false;
 	var inRoom = false;
 	var roomTime = 0;
@@ -17,6 +17,7 @@ $(function() {
 	
 	$message.html('<h2>Bienvenido!</h2> <p>Estamos cargando la plataforma...</p>');
 	$enter.hide();
+	$(".alert").hide();
 	$game.hide();
 	$counter.children('span').html('00:00');
 	$('#poll-option').val('N');
@@ -121,6 +122,10 @@ $(function() {
 	  			.done(function(data) {
 	  				if(data.insertedCount == 1){console.log('poll writen');}
 	  				$('#poll input[type="submit"]').attr('disabled', false).val('Enviar');
+					$(".alert").show();
+					$('.alert .close').on('click', function(){
+						$(".alert").hide();
+					});
 	  	 	 	  })
 	  	  	 	.fail(function(err) {
 	  	   			 console.log(err.statusText);
