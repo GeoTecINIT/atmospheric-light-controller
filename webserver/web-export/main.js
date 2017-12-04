@@ -84,7 +84,9 @@ $(function() {
 		
 		// shows waiting list
 		socket.on('waiting', (data)=>{
-				$waiting.children('p').children('span').html(data.waiting);
+			var iswait = data.waiting;
+			if(iswait < 0){iswait = 0;}
+				$waiting.children('p').children('span').html(iswait);
 		});
 		
 		
