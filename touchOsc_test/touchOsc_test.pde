@@ -1,3 +1,7 @@
+// notimplemented yet, following instructions from:
+// http://dduino.blogspot.com.es/2012/02/touchosc-with-processing-iphone-and.html
+// http://blog.make-a-tronik.com/processing-arduino-touchosc/
+
 import oscP5.*;
 import netP5.*;
 OscP5 oscP5;
