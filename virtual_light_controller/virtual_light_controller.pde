@@ -52,13 +52,16 @@ import processing.serial.*;
 DmxP512 dmxOutput;
 int universeSize=120; // universe (lights per RGB chanels)
 boolean DMXPRO=true;
-String DMXPRO_PORT=Serial.list()[3];//case matters ! on windows port must be upper cased.
+String DMXPRO_PORT=Serial.list()[1];//case matters ! on windows port must be upper cased.
 int DMXPRO_BAUDRATE=115000;
 
 /* GENERAL VARIABLES */
 int ia = 0; //used for modify lights sequence varies by mode
 int spd = 1; // used for speed by adding delay on sending signal to DMX
 Animation gif; // animated GIF class
+int countFrames = 0; //animated GIF current frame
+int imageFrames = 41; //animated GIF amount of frames (rest 1 to calculous)
+
 int numFrames = 255;  // The number of frames in the animation
 int currentFrame = 0; // to store framerate (related to chosenSpeed
 int BULB_NB = 40; // Quantity of bulbs
@@ -121,7 +124,8 @@ void setup(){
   peak_age2 = new int[peaksize2];
   
   /* GIF Processing */
-  gif = new Animation("frames/", 14); //recovers the animated GIF
+  gif = new Animation("frames/", imageFrames); //recovers the animated GIF
+
   
   // push bulbs to list
   for (i = 0; i < BULB_NB; i++){
@@ -170,8 +174,13 @@ void draw() {
                       theCol = lerpColor(from, to, tocol);
                      }
                    setDMX(i,int(red(theCol)),int(green(theCol)),int(blue(theCol)));
-                   tempYpos = i*20+20;
-                   tempXpos = 80;
+                   int gifi = i;
+                   if(i > BULB_NB/2-2){gifi = rlist[i];} //inverse the position of pixel
+                        tempYpos = gifi*20+20;
+                        tempXpos = 80;
+                        if(i>19){ //change position values to draw two lines
+                          tempXpos = 120;
+                        }
                    bulb = new Bulb(int(red(theCol)),int(green(theCol)),int(blue(theCol)), 1, tempXpos, tempYpos, 15);
                    bulb.display();
                 }
@@ -200,10 +209,11 @@ void draw() {
              if(spd < 50){ spd=50; }else if(spd>300){spd=300;}
              float iatoa = map(ia,0,4,0.2,1.0);
              for (i = 0; i < BULB_NB; i++){
-               tempYpos = i*20+20;
+               int gifi = i;
+               if(i > BULB_NB/2-2){gifi = rlist[i];} //inverse the position of pixel
+                    tempYpos = gifi*20+20;
                     tempXpos = 80;
                     if(i>19){ //change position values to draw two lines
-                      tempYpos = (i-20)*20+20;
                       tempXpos = 120;
                     }
                int dm = int(map(engineCalc, 10, 60, 1, 255)); 
@@ -223,26 +233,27 @@ void draw() {
           break;
           // *** CASE C : animated GIF ***
           case 'C':
+              
               spd = 1; spd = int(map((avgAmplitude1+avgAmplitude2)/2, 20, 55, 1, 15)); //modifies speed regarding amplitude
              if(spd < 1){ spd=1; }
              if(spd>15){spd=15;}
             for (int i = 0; i < BULB_NB; i++){
-              tempYpos = i*20+20;
-                    tempXpos = 80;
-                    if(i>19){ //change position values to draw two lines
-                      tempYpos = (i-20)*20+20;
-                      tempXpos = 120;
-                    }
                 int gifi = i; 
                 delay(spd); 
-                if(i > BULB_NB/2-2){gifi = rlist[i];}
-                int gifpc = gif.getImagePixels()[gifi];
+                if(i > BULB_NB/2-2){gifi = rlist[i];} //inverse the position of pixel
+                int gifpc = gif.getImagePixelsxF(countFrames)[gifi]; //gets the pixel of the image
+                   tempYpos = gifi*20+20;
+                    tempXpos = 80;
+                    if(i>19){ //change position values to draw two lines
+                      tempXpos = 120;
+                    }
                 setDMX(i,int(red(gifpc)),int(green(gifpc)),int(blue(gifpc)));
                 bulb = new Bulb(int(red(gifpc)),int(green(gifpc)),int(blue(gifpc)), 1, tempXpos, tempYpos, 15);
                 bulb.display(); 
               }
-              println(spd);
-              
+              fill(255,255,255);
+              text("speed: "+spd, 130.0, 400.0);
+              countFrames++; if(countFrames > imageFrames-1){countFrames = 0;}
           break;
           // *** CASE D : snake mode  ***
           case 'D':
@@ -598,7 +609,12 @@ class Animation {
   }
    int[] getImagePixels() {
     frame = (frame+1) % imageCount;
-    images[frame].resize(20,2);
+    images[frame].resize(2,20);
+    return images[frame].pixels;
+  }
+  int[] getImagePixelsxF(int frame) {
+    image(images[frame], 10.0,10.0);
+    images[frame].resize(2,20);
     return images[frame].pixels;
   }
   int getWidth() {
