@@ -52,7 +52,7 @@ import processing.serial.*;
 DmxP512 dmxOutput;
 int universeSize=120; // universe (lights per RGB chanels)
 boolean DMXPRO=true;
-String DMXPRO_PORT=Serial.list()[1];//case matters ! on windows port must be upper cased.
+String DMXPRO_PORT=Serial.list()[3];//case matters ! on windows port must be upper cased.
 int DMXPRO_BAUDRATE=115000;
 
 /* GENERAL VARIABLES */
@@ -132,7 +132,7 @@ void setup(){
 }
 
 void draw() { 
-    background(125,255,125);
+    background(0,0,0);
     // ****
     // AUDIO ANALYSIS
     // ****
@@ -152,7 +152,7 @@ void draw() {
      // ****
     // LIGHT BEHAVIOUR
     // ****
-    text(avgAmplitude1, 20, 400); text(avgAmplitude2, 50, 400);  // prints each amplitude
+    text("av1: "+avgAmplitude1, 20, 400); text("av2: "+avgAmplitude2, 80, 400);  // prints each amplitude
     //a++; if(a>255){a=0;} // A is going trough color spectrum
     currentFrame = (currentFrame+1) % numFrames;  // Use % to cycle through frames
          switch(chosenOption){
@@ -161,7 +161,7 @@ void draw() {
                 color from = color(0, 0, 255);
                 color to = color(255, 0, 0);
                 color theCol = color(0,0,0);
-                int am = int(map(avgAmplitude1, 0, 70, 0, BULB_NB/2-1));
+                int am = int(map(avgAmplitude1, 35, 60, 0, BULB_NB/2-1));
                 
                 for (i = 0; i < BULB_NB/2; i++){
                   theCol = color(0,0,0);
@@ -175,7 +175,7 @@ void draw() {
                    bulb = new Bulb(int(red(theCol)),int(green(theCol)),int(blue(theCol)), 1, tempXpos, tempYpos, 15);
                    bulb.display();
                 }
-                int am2 = int(map(avgAmplitude2, 0, 70, BULB_NB-1, BULB_NB/2-1)); // La segunda linea va invertida (para atras)
+                int am2 = int(map(avgAmplitude2, 35, 70, BULB_NB-1, BULB_NB/2-1)); // La segunda linea va invertida (para atras)
                 for (i = BULB_NB-1; i > BULB_NB/2-1; i--){
                  from = color(0, 255, 0);
                  theCol = color(0,0,0);
@@ -194,18 +194,28 @@ void draw() {
          case 'B':
              /* colors from blue to red */
               if(ia > 4)ia = 0;
-             spd=80;spd = (int(map(avgAmplitude2, 5, 70, 200, 80)) + int(map(avgAmplitude1, 5, 70, 80, 200)))/2; //modifies speed regarding amplitude
-             if(spd < 80){ spd=80; }else if(spd>200){spd=200;}
-             float iatoa = map(ia,0,5,0.0,1.0);
+             spd=300; 
+             //spd = (int(map(avgAmplitude2, 0, 50, 400, 100)) + int(map(avgAmplitude1, 30, 80, 40, 300)))/2; //modifies speed regarding amplitude
+             spd = int(map(engineCalc, 10, 50, 300, 50));
+             if(spd < 50){ spd=50; }else if(spd>300){spd=300;}
+             float iatoa = map(ia,0,4,0.2,1.0);
              for (i = 0; i < BULB_NB; i++){
-               int dm = int(map(avgAmplitude2, 5, 70, 1, 255)); 
+               tempYpos = i*20+20;
+                    tempXpos = 80;
+                    if(i>19){ //change position values to draw two lines
+                      tempYpos = (i-20)*20+20;
+                      tempXpos = 120;
+                    }
+               int dm = int(map(engineCalc, 10, 60, 1, 255)); 
                dm = int(dm*iatoa);
                if(dm>255){dm=255;}else if(dm<1){dm=1;}
-               int dm2 = int(map(avgAmplitude1, 5, 70, 1, 255)); 
+               int dm2 = int(map(engineCalc, 20, 60, 255, 1)); 
                dm2 = int(dm2*iatoa);
                if(dm2>255){dm2=255;}else if(dm2<1){dm2=1;}
                setDMX(i,dm,0,dm2);
                //println(dm,dm2,spd);
+                bulb = new Bulb(dm,0,dm2, 1, tempXpos, tempYpos, 15);
+                bulb.display();
              }
              delay(spd); //modifies the speed
              ia++;
@@ -213,15 +223,23 @@ void draw() {
           break;
           // *** CASE C : animated GIF ***
           case 'C':
-              spd = 1; spd = int(map((avgAmplitude1+avgAmplitude2)/2, 5, 70, 1, 15)); //modifies speed regarding amplitude
+              spd = 1; spd = int(map((avgAmplitude1+avgAmplitude2)/2, 20, 55, 1, 15)); //modifies speed regarding amplitude
              if(spd < 1){ spd=1; }
              if(spd>15){spd=15;}
             for (int i = 0; i < BULB_NB; i++){
+              tempYpos = i*20+20;
+                    tempXpos = 80;
+                    if(i>19){ //change position values to draw two lines
+                      tempYpos = (i-20)*20+20;
+                      tempXpos = 120;
+                    }
                 int gifi = i; 
                 delay(spd); 
                 if(i > BULB_NB/2-2){gifi = rlist[i];}
                 int gifpc = gif.getImagePixels()[gifi];
                 setDMX(i,int(red(gifpc)),int(green(gifpc)),int(blue(gifpc)));
+                bulb = new Bulb(int(red(gifpc)),int(green(gifpc)),int(blue(gifpc)), 1, tempXpos, tempYpos, 15);
+                bulb.display(); 
               }
               println(spd);
               
@@ -230,24 +248,35 @@ void draw() {
           case 'D':
               // Circular light
              if(ia == BULB_NB){ia = 0;}
-             spd = 1; spd = int(map((avgAmplitude1+avgAmplitude2)/2, 5, 70, 300, 1)); //modifies speed regarding amplitude
+             spd = 1; spd = int(map((avgAmplitude1+avgAmplitude2)/2, 30, 60, 300, 1)); //modifies speed regarding amplitude
              if(spd < 1){ spd=1; }
              if(spd>300){spd=300;}
-             float tocol= map((avgAmplitude1+avgAmplitude2)/2, 5, 70, 0.0, 1.0);
+             float tocol= map((avgAmplitude1+avgAmplitude2)/2, 25, 60, 0.0, 1.0);
              int spdcol = lerpColor(color(0, 128, 105), color(255,10,5), tocol);
              int spdcol1 = lerpColor(color(0, 98, 75), color(155,5,0), tocol);
              int spdcol2 = lerpColor(color(0, 68, 45), color(55,0,0), tocol);
              for (i = 0; i < BULB_NB; i++){
+              tempYpos = i*20+20;
+                    tempXpos = 80;
+                    if(i>19){ //change position values to draw two lines
+                      tempYpos = (i-20)*20+20;
+                      tempXpos = 120;
+                    }
                if(i == ia){
+                 bulb = new Bulb(int(red(spdcol)),int(green(spdcol)),int(blue(spdcol)), 1, tempXpos, tempYpos, 15);
                  setDMX(i,int(red(spdcol)),int(green(spdcol)),int(blue(spdcol)));
                }else if(i == ia-1){
+                 bulb = new Bulb(int(red(spdcol1)),int(green(spdcol1)),int(blue(spdcol1)), 1, tempXpos, tempYpos, 15);
                  setDMX(i,int(red(spdcol1)),int(green(spdcol1)),int(blue(spdcol1)));
                }else if(i == ia-2){
+                 bulb = new Bulb(int(red(spdcol2)),int(green(spdcol2)),int(blue(spdcol2)), 1, tempXpos, tempYpos, 15);
                  setDMX(i,int(red(spdcol2)),int(green(spdcol2)),int(blue(spdcol2)));
                }
                else{
+                 bulb = new Bulb(0,0,0, 1, tempXpos, tempYpos, 15);
                  setDMX(i,0,0,0);
                }
+               bulb.display();
              }
              //println(spd, a, avgAmplitude1+avgAmplitude2, spdcol, spdcol1, spdcol2);
              delay(spd); //modifies the speed
@@ -296,10 +325,11 @@ void draw() {
                       tempYpos = (i-20)*20+20;
                       tempXpos = 120;
                     }
-           int dc = int(map((avgAmplitude1+avgAmplitude2)/2, 0, 70, 0, 255)); // Modifies the color with sound amplitude
+           int dc = int(map((avgAmplitude1+avgAmplitude2)/2, 20, 70, 0, 255)); // Modifies the color with sound amplitude
            bulb = new Bulb(dc,dc,dc, 1, tempXpos, tempYpos, 15);
            bulb.display();
            if(dc > 255){dc = 255;}
+           if(dc < 3){dc = 3;}
            setDMX(i,dc,dc,dc);
            dmxOutput.set(i,dc); //for some reason this should be here (DMX doesnt work otherwise)
           }
