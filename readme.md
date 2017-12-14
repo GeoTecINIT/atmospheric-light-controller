@@ -62,5 +62,9 @@ The Class Animation is made to map animated GIFs to each bulb. (those would be f
 Using Minim, we create an average amplitude analysis for two inputs (could be stereo mics or two separate inputs). The avgAmplitude1 and avgAmplitude2 will return a balanced stream of each inputs. 
 
 ---
+This work was made by [Manuel Portela](http://manuchis.net/). Thanks to the collaboration of Carlos Granell-Canut and Cristian Reynaga. 
 
 This research is held in the frame of the GEO-C (http://geo-c.eu) project regarding the ESR15: Situational Awareness-as-a-service and the GeoTec (http://geotec.uji.es) research department at UJI.
+GEO-C is funded by the European Commission within the Marie Skłodowska-Curie Actions, International Training Networks (ITN), European Joint Doctorates (EJD). The funding period is January 1, 2015 - December 31, 2018, Grant Agreement number 642332 — GEO-C — H2020-MSCA-ITN-2014.
+
+[![DOI](https://zenodo.org/badge/108422101.svg)](https://zenodo.org/badge/latestdoi/108422101)
