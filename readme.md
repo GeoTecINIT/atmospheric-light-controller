@@ -1,7 +1,5 @@
 # Atmospheric Light Controller (ALC)
 
-[W4] Last experiment for my thesis. 
-
 For now is just an Beta version on first Processing programming. 
 
 ## Contents
@@ -31,8 +29,8 @@ For now is just an Beta version on first Processing programming.
 ### Installation
 
 1. Install nodejs server
-`cd /webserver
-npm install` 
+`cd /webserver`  
+`npm install` 
 
 2. Create MongoDB collections
  - Database: atmospheric-light-controller
@@ -62,3 +60,7 @@ The Class Animation is made to map animated GIFs to each bulb. (those would be f
 
 ### Sound Analysis
 Using Minim, we create an average amplitude analysis for two inputs (could be stereo mics or two separate inputs). The avgAmplitude1 and avgAmplitude2 will return a balanced stream of each inputs. 
+
+---
+
+This research is held in the frame of the GEO-C (http://geo-c.eu) project regarding the ESR15: Situational Awareness-as-a-service and the GeoTec (http://geotec.uji.es) research department at UJI.
