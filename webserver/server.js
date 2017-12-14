@@ -74,6 +74,12 @@ var sES = schedule.scheduleJob(sRule, function(){
   	energySaver = 0;
   	var tMsg = 'Energy Saver is off at '+ time;
  	saveDb('energysaver', {status: energySaver, timestamp: time}, tMsg);
+	
+	theOption = 'C';
+	// sending the variable to Processing
+	var msg =  new osc.Message('/clientMsg')
+	msg.append(theOption)
+	oscClient.send(msg)
 });
 
 // END
