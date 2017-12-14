@@ -11,19 +11,19 @@ For now is just an Beta version on first Processing programming.
 ## Usage
 ### Dependencies
 * NodeJS
- * express
- * crypto
- * socket.io
- * node-schedule
- * body-parser
- * node-osc
- * client-sessions
+	* express
+	* crypto
+	* socket.io
+	* node-schedule
+	* body-parser
+	* node-osc
+	* client-sessions
 * MongoDB
 * Processing 3
- * oscP5
- * netP5
- * minim
- * dmxP512
+	* oscP5
+	* netP5
+	* minim
+	* dmxP512
  
 
 ### Installation
